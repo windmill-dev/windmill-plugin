@@ -1,0 +1,21 @@
+{
+  "name": "windmill",
+  "owner": {
+    "name": "Windmill"
+  },
+  "metadata": {
+    "description": "Windmill skills and MCP integration for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "windmill",
+      "description": "Connect Claude Code to Windmill for performance reviews, feedback, 1:1s, pulse surveys, and more.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Windmill"
+      },
+      "source": "./plugins/windmill"
+    }
+  ]
+}
