@@ -19,8 +19,8 @@ description: Context and guidance for collecting user-initiated feedback about c
 ## Collection Workflow
 1. Identify targets via employees_query; reject self; clarify ambiguous matches
 2. Collect feedback (see conversation rules below)
-3. Confirm the feedback you are about to submit. If positive and shoutouts configured, ask if user wants to share as shoutout; create after submit (step 4)
-4. Submit per recipient (feedback_create supports multiple pieces of feedback)
+3. Confirm the feedback you are about to submit. If positive and shoutouts configured, ask if user wants to share as shoutout in the same submission
+4. Submit via feedback_create (supports multiple pieces of feedback and optional shoutout creation)
 5. Confirm success after all submissions are complete
 
 ## Conversation Rules
@@ -63,7 +63,7 @@ If the user explicitly asks you to "turn this into feedback", "clean it up", "re
 - Shoutouts can only be created for highly positive feedback without constructive elements
 - Users will often signal shoutout intent when initiating feedback. Do not offer a shoutout if this is the case.
 - If user does not signal intent, offer a shoutout if feedback meets criteria and shoutouts are configured.
-- Use the feedback_shoutouts_create tool to create a shoutout after submitting the feedback.
+- Use the feedback_create tool with the optional `shoutout` input to create a shoutout.
 - Use the feedback_shoutouts_load_config tool to check if shoutouts are configured and enabled.
 - Do not offer a shoutout if it is not configured and enabled.
 - If user signals intent to create shoutout, and they are not configured, let them know prior to collecting feedback.
@@ -76,10 +76,10 @@ If the user explicitly asks you to "turn this into feedback", "clean it up", "re
 ## Tool Usage Patterns
 
 Submission model:
-- One piece of feedback per recipient; multiple recipients require multiple submissions
-- Use feedback_create for each recipient
-- Shoutouts created after feedback submission using feedback_shoutouts_create
-- Many pieces of feedback can be combined into a single shoutout (requires feedbackIds)
+- One piece of feedback per recipient; multiple recipients require separate entries
+- Use feedback_create for each recipient or as a batch
+- Create shoutouts through feedback_create by including `shoutout.comment`
+- For shoutout-only flows (no new feedback), provide existing `shoutout.feedbackIds`
 
 ## Error Handling
 - Employee not found: Ask for full name or department
