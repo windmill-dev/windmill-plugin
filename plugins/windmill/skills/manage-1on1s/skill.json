@@ -1,0 +1,56 @@
+{
+  "id": "manage-1on1s",
+  "resourceFilename": "managing_one-on-ones_skill.md",
+  "description": "Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, configure 1:1 prep or notifications, or work with 1:1 calendar events.",
+  "variants": [
+    {
+      "id": "prep",
+      "description": "Prep-oriented workflow for 1:1s (one-on-one-templates disabled)",
+      "file": "prep.md",
+      "gate": {
+        "flag": "one-on-one-templates",
+        "enabledWhen": false
+      },
+      "requiredTools": [
+        "one-on-ones_query",
+        "one-on-one-events_query",
+        "one-on-one-events_next",
+        "meetings_calendar_query",
+        "one-on-ones_create",
+        "one-on-ones_archive",
+        "one-on-ones_agenda_load",
+        "one-on-ones_agenda_update",
+        "one-on-ones_prep-routine_load",
+        "one-on-ones_prep-routine_create",
+        "one-on-ones_prep-routine_update"
+      ],
+      "optionalTools": [
+        "one-on-ones_agenda_update_json"
+      ]
+    },
+    {
+      "id": "notification",
+      "description": "Notification-config workflow for 1:1s (one-on-one-templates enabled)",
+      "file": "notification.md",
+      "gate": {
+        "flag": "one-on-one-templates",
+        "enabledWhen": true
+      },
+      "requiredTools": [
+        "one-on-ones_query",
+        "one-on-one-events_query",
+        "one-on-one-events_next",
+        "meetings_calendar_query",
+        "one-on-ones_create",
+        "one-on-ones_archive",
+        "one-on-ones_agenda_load",
+        "one-on-ones_agenda_update",
+        "one-on-ones_notification-config_load",
+        "one-on-ones_notification-config_update"
+      ],
+      "optionalTools": [
+        "one-on-ones_agenda_update_json"
+      ]
+    }
+  ]
+}

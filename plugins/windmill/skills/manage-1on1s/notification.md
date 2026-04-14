@@ -1,17 +1,9 @@
----
-name: manage-1on1s
-description: Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, manage notification preferences, or work with 1:1 calendar events.
----
-
-# Managing One-on-Ones
-
-## Relevant Resources
-- one-on-ones_system_context.md
-- meetings_system_context.md
+# Managing One-on-Ones (Notification Workflow)
 
 ## Your Responsibilities
 - Manage 1:1 labels on calendar events
 - Update shared 1:1 notes pages
+- Configure notification preferences for 1:1s
 - You can only access 1:1s where the current employee is a participant
 
 ## Disambiguation
@@ -65,11 +57,14 @@ Critical: Always load before update
 
 1. Resolve the correct one-on-one (see Date Disambiguation above)
 2. Load current page content via one-on-ones_agenda_load using that `oneOnOneId`
-3. Build full replacement content (never delete content unless user explicitly requests)
-4. Call one-on-ones_agenda_update with `oneOnOneId` and complete new content
-5. Confirm with page link
+3. Inspect the returned content shape to determine the update path:
+   - If content is a string (markdown): use one-on-ones_agenda_update
+   - If content is a structured object (JSON) and one-on-ones_agenda_update_json is available: use that tool
+4. Build full replacement content (never delete content unless user explicitly requests)
+5. Call the appropriate update tool with `oneOnOneId` and complete new content
+6. Confirm with page link
 
-Notes structure guidelines:
+### Notes Structure Guidelines (Markdown)
 - Format: Markdown
 - Use "Agenda" and "Action Items" H2 headers when content exists
 - Use bullet points (`*` markdown notation) for agenda items
@@ -84,19 +79,64 @@ Notes structure guidelines:
   - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold `**Other**` header at the bottom of the agenda
   - Only add the `**Other**` header when question headers already exist
 
+### Notes Structure Guidelines (JSON)
+When content is returned as structured JSON and one-on-ones_agenda_update_json is available:
+- Pass `oneOnOneId` and `content` (ProseMirror JSON document)
+- Follow the schema returned by the load tool
+- Preserve existing items unless explicitly asked to remove them
+
 ## Workflow: Manage Notification Preferences
 
-Loading notification config:
-1. Call one-on-ones_notification-config_load to get the current employee's notification preferences
-2. Returns which relationship types have 1:1 notifications enabled (direct reports, indirect reports, managers, peers)
-3. Also returns the current notification timing offset in minutes before the meeting
+Notification config controls when and how the user receives 1:1 meeting notifications.
 
-Updating notification config:
+### Loading Notification Config
+1. Call one-on-ones_notification-config_load (no input required)
+2. Returns the current employee's notification preferences:
+   - `directReportsEnabled`: Whether notifications are enabled for 1:1s with direct reports
+   - `indirectReportsEnabled`: Whether notifications are enabled for indirect reports
+   - `managersEnabled`: Whether notifications are enabled for managers
+   - `peersEnabled`: Whether notifications are enabled for peers
+   - `notificationOffsetMinutes`: Minutes before the meeting when notifications are sent
+
+### Updating Notification Config
 1. Load existing config via one-on-ones_notification-config_load
 2. Call one-on-ones_notification-config_update with the desired changes
-3. For notification timing: omit the field to leave it unchanged, or pass one of these exact minute values to set a specific timing: 30, 60, 120, 180, 360, 1440, 2880
-4. Only include the fields you want to change — omitted fields remain unchanged
-5. Confirm update
+3. Partial updates supported — only include fields you want to change:
+   - `directReportsEnabled`: Enable/disable notifications for 1:1s with direct reports
+   - `indirectReportsEnabled`: Enable/disable for indirect reports
+   - `managersEnabled`: Enable/disable for managers
+   - `peersEnabled`: Enable/disable for peers
+   - `notificationOffsetMinutes`: Minutes before meeting to send notification
+4. Omitted fields remain unchanged
+
+### Supported notificationOffsetMinutes Values
+The `notificationOffsetMinutes` field accepts these exact values:
+- `30` — 30 minutes before
+- `60` — 1 hour before
+- `120` — 2 hours before
+- `180` — 3 hours before
+- `360` — 6 hours before
+- `1440` — 1 day before
+- `2880` — 2 days before
+
+### Example Updates
+
+Enable notifications for direct reports only:
+```json
+{
+  "directReportsEnabled": true,
+  "indirectReportsEnabled": false,
+  "managersEnabled": false,
+  "peersEnabled": false
+}
+```
+
+Change notification timing to 1 hour before:
+```json
+{
+  "notificationOffsetMinutes": 60
+}
+```
 
 ## Tool Usage Patterns
 
