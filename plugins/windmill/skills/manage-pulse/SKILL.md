@@ -1,6 +1,6 @@
 ---
 name: manage-pulse
-description: Context and guidance for managing existing pulses. Use when users want to pause, resume, trigger, schedule, send nudges, update participants, or check on pulse results.
+description: Context and guidance for managing existing pulses. Use when users want to pause, resume, send now, schedule, send nudges, update participants, or check on pulse results.
 ---
 
 # Managing Pulses
@@ -12,10 +12,10 @@ Use when users want to update, control, or check on existing pulses.
 ## Vocabulary
 
 - **Run**: A single round of a pulse (one send to participants)
-- **Trigger**: Manually start a run of a pulse
+- **Send Now**: Manually run a pulse immediately
 - **Nudge**: User triggered notification to respond to a pulse
 - **Requester**: Who the pulse appears to be from
-- **Launched**: Whether or not the pulse has been taken out of its initial "draft" state. Triggering a pulse, or setting to active will automatically launch the pulse.
+- **Launched**: Whether or not the pulse has been taken out of its initial "draft" state. This happens when a non-manual schedule is set via `pulse_update`, or when `pulse_send_now` is used.
 
 ## Statuses
 
@@ -31,9 +31,9 @@ New pulses start ACTIVE.
 | Tool | Purpose | Key Constraints |
 |------|---------|-----------------|
 | pulse_query | Find and load pulses | Supports pulseIds filter to load specific pulses |
-| pulse_update | Change settings or status | Use `status` param to pause/resume |
-| pulse_trigger | Start run manually | Requires ACTIVE status, 6-hour gap per employee |
-| pulse_send_nudge | User triggered notification | 15-minute cooldown per employee globally |
+| pulse_update | Change settings, status, or schedule | Non-manual schedule fields also launch an unlaunched pulse |
+| pulse_send_now | Send pulse immediately | Requires ACTIVE status |
+| pulse_send_nudge | User triggered notification | Requires `sessionId` and explicit `employeeIds`; 15-minute cooldown per employee globally |
 | pulse_runs_query | List runs | - |
 | pulse_employee_runs_query | Get responses | - |
 | pulse_employees_query | List participants | Shows enrolled employees |
@@ -43,25 +43,14 @@ New pulses start ACTIVE.
 
 ## Schedule Types
 
-Pulses default to MANUAL. Update via pulse_update using ONE of these parameters:
+Use `pulse_update` to set schedule with ONE of these fields:
 
-| Parameter | When to Use | Example |
+| Field | When to Use | Example |
 |-----------|-------------|---------|
-| `scheduleManual: true` | User triggers each run | `{pulseId: "WT-1", scheduleManual: true}` |
+| `scheduleManual: true` | No automatic runs | `{pulseId: "WT-1", scheduleManual: true}` |
 | `scheduleOneTime` | Single scheduled send | `{pulseId: "WT-1", scheduleOneTime: {sendAt: "2024-03-15T15:00:00", timezone: "America/New_York"}}` |
-| `scheduleRecurring` | Repeating pattern | See examples below |
-| `scheduleStartDateAnniversary` | Employee start date anniversary | `{pulseId: "WT-1", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
-
-**Use ONLY ONE schedule parameter per call.** The tool validates that only one is provided.
-
-### One-Time Schedule Example
-{
-  "pulseId": "WT-1",
-  "scheduleOneTime": {
-    "sendAt": "2024-03-15T15:00:00",
-    "timezone": "America/New_York"
-  }
-}
+| `scheduleRecurring` | Repeating pattern | See example below |
+| `scheduleStartDateAnniversary` | Employee start-date anniversary | `{pulseId: "WT-1", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
 
 ### Weekly Recurring Schedule Example (every Friday at 3pm)
 {
@@ -77,24 +66,16 @@ Pulses default to MANUAL. Update via pulse_update using ONE of these parameters:
   }
 }
 
-### New Hire Anniversary Schedule Example (30-day check-in at 9am weekdays)
-{
-  "pulseId": "WT-1",
-  "scheduleStartDateAnniversary": {
-    "offsetDays": 30,
-    "hourOfDay": 9,
-    "timezone": "America/New_York"
-  }
-}
-
 **User intent mapping:**
-- "send next Monday at 9am" -> `scheduleOneTime` with sendAt as ISO datetime
-- "every Monday" -> `scheduleRecurring` with frequency=WEEKLY, daysOfWeek=["MONDAY"]
-- "every other Wednesday" -> `scheduleRecurring` with frequency=WEEKLY, interval=2, daysOfWeek=["WEDNESDAY"]
-- "every Friday at 3pm" -> `scheduleRecurring` with frequency=WEEKLY, daysOfWeek=["FRIDAY"], start time as "...T15:00:00"
-- "first Monday of each month" -> `scheduleRecurring` with frequency=MONTHLY, weeksOfMonth=[1], setPositions=[1], daysOfWeek=["MONDAY"]
-- "send 30 days after first day" -> `scheduleStartDateAnniversary` with offsetDays=30
-- "one year after their start date" -> `scheduleStartDateAnniversary` with offsetDays=365
+- "send now" -> `pulse_send_now`
+- "send next Monday at 9am" -> `pulse_update` with `scheduleOneTime`
+- "every Monday" -> `pulse_update` with `scheduleRecurring`
+- "every other Wednesday" -> `pulse_update` with `scheduleRecurring` interval=2
+- "first Monday of each month" -> `pulse_update` with `scheduleRecurring` monthly rule
+- "send 30 days after first day" -> `pulse_update` with `scheduleStartDateAnniversary`
+- "one year after their start date" -> `pulse_update` with `scheduleStartDateAnniversary`, offsetDays=365
+
+When `scheduleOneTime`, `scheduleRecurring`, or `scheduleStartDateAnniversary` is set on an unlaunched pulse, update also launches it.
 
 ## Updating Participants
 
@@ -135,8 +116,8 @@ Update with:
   "pulseId": "WT-1",
   "participants": {
     "or": [
-      {"employeeIds": ["EMPL-2", "EMPL-3"]},
-      {"managerIds": ["EMPL-3"]}
+      {"employeeIds": ["EMPL-2", "EMPL-3"]}, // previous participants
+      {"managerIds": ["EMPL-3"]} // jims employeeId
     ]
   }
 }
@@ -160,7 +141,7 @@ Who users can select depends on their role:
 
 | Role | Can Use |
 |------|---------|
-| ADMIN | Any filter: `employeeIds`, `ancestorManagerIds`, `managerIds`, `departmentId`, `employeeGroupIds` |
+| ADMIN | Any filter: `employeeIds`, `ancestorManagerIds`, `managerIds`, `employeeGroupIds` |
 | MANAGER | `employeeIds`, `ancestorManagerIds` (own ID only - their subtree) |
 | IC | `employeeIds` only (accessible employees) |
 
@@ -176,7 +157,7 @@ Who users can select depends on their role:
 | `notificationDelayMinutes` | Delay before first **reminder** to non-respondents (does NOT control when the pulse is sent) | 1440 (1 day) |
 | `durationMinutes` | Response deadline window (min 30, null = no deadline) | null |
 
-CRITICAL: When a user says "send now" or "send immediately", use pulse_trigger to trigger the pulse. Do NOT change `notificationDelayMinutes` — that controls reminder timing, not pulse delivery.
+CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now`. Do NOT change `notificationDelayMinutes` — that controls reminder timing, not pulse delivery.
 
 ## Requester Options
 
@@ -216,11 +197,17 @@ Do not leak the actual enum values to the user. Use friendly names and labels in
 
 **CRITICAL**: To send nudges, call `pulse_send_nudge`:
 1. Find the pulse via `pulse_query`
-2. Call `pulse_send_nudge` with `pulseId` and `employeeIds` to nudge
-3. Report the result to the user
+2. Find the target run/session via `pulse_runs_query` (usually the latest run)
+3. Determine the specific employees to nudge
+4. Call `pulse_send_nudge` with `pulseId`, `sessionId`, and explicit `employeeIds`
+5. Report the result to the user
+
+Important:
+- There is no "nudge all non-responders" shortcut parameter. You must send explicit `employeeIds`.
 
 ## Product Rules
 
 - Cannot change anonymity after responses collected
-- Trigger: 6-hour minimum gap per employee, pulse must be ACTIVE
+- Schedule updates: pulse must not be COMPLETED or ARCHIVED
+- Send now: pulse must be ACTIVE
 - Cannot remove last owner with WRITE access
