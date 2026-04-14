@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, manage notification preferences, or work with 1:1 calendar events.
+description: Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, or work with 1:1 calendar events.
 ---
 
 # Managing One-on-Ones
@@ -84,25 +84,10 @@ Notes structure guidelines:
   - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold `**Other**` header at the bottom of the agenda
   - Only add the `**Other**` header when question headers already exist
 
-## Workflow: Manage Notification Preferences
-
-Loading notification config:
-1. Call one-on-ones_notification-config_load to get the current employee's notification preferences
-2. Returns which relationship types have 1:1 notifications enabled (direct reports, indirect reports, managers, peers)
-3. Also returns the current notification timing offset in minutes before the meeting
-
-Updating notification config:
-1. Load existing config via one-on-ones_notification-config_load
-2. Call one-on-ones_notification-config_update with the desired changes
-3. For notification timing: omit the field to leave it unchanged, or pass one of these exact minute values to set a specific timing: 30, 60, 120, 180, 360, 1440, 2880
-4. Only include the fields you want to change — omitted fields remain unchanged
-5. Confirm update
-
 ## Tool Usage Patterns
 
 Always load before write:
 - Notes pages: Load with one-on-ones_agenda_load before calling one-on-ones_agenda_update
-- Notification config: Load with one-on-ones_notification-config_load before calling one-on-ones_notification-config_update
 
 Batch operations:
 - When labeling multiple events, process them sequentially
