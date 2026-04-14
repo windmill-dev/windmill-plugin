@@ -28,17 +28,26 @@ Use this skill when:
 
 ## CRITICAL: How Pulse Creation Works
 
-Creating a pulse does NOT launch it or set a schedule.
+Creating a pulse can include schedule configuration in the same call.
 
-The creation flow only gathers the minimum required information:
+The creation flow gathers and confirms:
 1. Motivation
-2. Discussion topics
+2. Discussion topics (can be AI-generated if needed)
 3. Participants
 4. Anonymity
+5. Run updates preference (`runUpdatesEnabled` true/false)
+6. Optional schedule preference (manual, one-time, recurring, or start-date anniversary)
 
-The pulse is created in ACTIVE status with a MANUAL schedule. After creation, the user can:
-- Update the schedule (via pulse_update)
-- Trigger it manually (via pulse_trigger)
+The tool call also requires:
+- `name` (generated from motivation/topics)
+- `runUpdatesEnabled` (explicit boolean; do not omit)
+
+The pulse is created in ACTIVE status. If no schedule fields are provided, it defaults to MANUAL.
+
+After creation, the user can:
+- Update configuration (via `pulse_update`)
+- Update schedule (via `pulse_update`)
+- Send it now (via `pulse_send_now`)
 
 ## Workflow: Create Pulse
 
@@ -72,17 +81,17 @@ WHO the user can select depends on their role:
 
 ADMIN users:
 - Can construct ANY employee filter
-- Can use `ancestorManagerIds`, `managerIds`, `employeeIds`, `employeeGroupIds`, `departmentId`
+- Can use `ancestorManagerIds`, `managerIds`, `employeeIds`, `employeeGroupIds`
 - Can select anyone in the organization
 
 MANAGER users:
 - Can list employees by name (`employeeIds`)
 - Can filter by their organizational subtree (`ancestorManagerIds` with their own ID)
-- CANNOT use arbitrary manager IDs or department filters outside their tree
+- CANNOT use arbitrary manager IDs outside their tree
 
 IC (Individual Contributor) users:
 - Can ONLY list specific employees by name (`employeeIds`)
-- CANNOT use `ancestorManagerIds`, `managerIds`, or department filters
+- CANNOT use `ancestorManagerIds` or `managerIds`
 
 The system validates access using "visible subtrees" - managers see their reports, ICs see themselves and peers they collaborate with.
 
@@ -136,12 +145,12 @@ Duration: How long participants have to respond to the pulse.
 
 Reminder Delay: How long to wait before sending the first **reminder** notification to participants who haven't responded yet. Defaults to 1 day (1440 minutes). Leave at default unless the user explicitly asks about reminder timing.
 
-CRITICAL DISAMBIGUATION: When the user says "send it now" or "send immediately", they mean **trigger the pulse** (use pulse_trigger after creation). Do NOT interpret "send now" as "set the reminder delay to 0 or 1 minute". The reminder delay is a separate concept from when the pulse is sent.
+CRITICAL DISAMBIGUATION: When the user says "send it now" or "send immediately", they mean **send the pulse now** (use `pulse_send_now` after creation). Do NOT interpret "send now" as "set the reminder delay to 0 or 1 minute". The reminder delay is a separate concept from when the pulse is sent.
 
 Run Updates: Whether the creator gets updates from Windy throughout each run
 
-### Step 5: Create Pulse
-Call pulse_create with:
+### Step 5: Create Pulse (Optionally with Schedule)
+Call `pulse_create` with:
 - `name`: Generated from motivation/topics (required)
 - `motivation`: What they want to learn (required)
 - `discussionTopics`: Array of topics (required)
@@ -149,15 +158,21 @@ Call pulse_create with:
 - `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (optional, defaults to NAMED if omitted/null)
 - `durationMinutes`: Response duration in minutes, min 30 (optional, omit for no deadline)
 - `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse — it only controls reminder timing.
-- `runUpdatesEnabled`: Whether creator gets updates from Windy throughout each run
+- `runUpdatesEnabled`: Whether creator gets updates from Windy throughout each run (required boolean)
+- Optional schedule fields (use at most one):
+  - `scheduleManual: true`
+  - `scheduleOneTime`
+  - `scheduleRecurring`
+  - `scheduleStartDateAnniversary`
 
-The pulse is created in ACTIVE status with MANUAL schedule.
+If schedule fields are omitted, create defaults to MANUAL schedule.
 
 ### Step 6: Confirm Success and Offer Next Steps
-Confirm creation with user. DO NOT automatically trigger or launch - the user must explicitly request this.
+Confirm creation with user.
 
 After confirming creation, offer these options:
-1. Set up a schedule (one-time, recurring, or new hire anniversary)
-2. Trigger it now (send immediately to participants)
+1. Send now (immediately to participants) via `pulse_send_now`
+2. Update schedule (one-time, recurring, or new hire anniversary) via `pulse_update`
+3. Update additional configuration via `pulse_update`
 
 Load managing_pulses_skill.md to guide them through whichever option they choose.
