@@ -1,6 +1,8 @@
 ---
 name: manage-pulse
 description: Context and guidance for managing existing pulses. Use when users want to pause, resume, send now, schedule, send nudges, update participants, or check on pulse results.
+domain: pulses
+resourceFilename: managing_pulses_skill.md
 ---
 
 # Managing Pulses
