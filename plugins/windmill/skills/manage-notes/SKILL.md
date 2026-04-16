@@ -1,6 +1,8 @@
 ---
 name: manage-notes
 description: Context and guidance for managing private notes for the current employee. Use when users want to create, retrieve, update, or delete personal notes about colleagues.
+domain: private-notes
+resourceFilename: manage_private_notes_skill.md
 ---
 
 # Managing Private Notes

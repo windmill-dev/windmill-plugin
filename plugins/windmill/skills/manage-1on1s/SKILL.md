@@ -1,13 +1,14 @@
 ---
 name: manage-1on1s
 description: Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, or work with 1:1 calendar events.
+domain: one-on-ones
+resourceFilename: managing_one-on-ones_skill.md
 ---
 
 # Managing One-on-Ones
 
 ## Relevant Resources
 - one-on-ones_system_context.md
-- meetings_system_context.md
 
 ## Your Responsibilities
 - Manage 1:1 labels on calendar events
@@ -32,25 +33,24 @@ When user refers to a 1:1 without specifying a date (e.g., "add X to my 1:1 agen
 
 ## Workflow: Create 1:1s
 
-Default approach: Try calendar event first, fall back to ad-hoc
+Public creation should default to ad-hoc creation.
 
-1. First, search for an existing calendar event using meetings_calendar_query
-  - Filter by attendee name if user mentions a specific person
-  - Filter by time/date if user specifies when
-  - This tool returns calendar events with an `eventId` — pass it as the `calendarEventId` when creating the 1:1
+1. Identify the other employee
+  - Resolve the other participant and collect their `otherEmployeeId`
+  - The current user is automatically included
 
-2. If matching calendar event found:
-  - Call one-on-ones_create with `type: "calendar_event"`, `otherEmployeeId`, and `calendarEventId`
-  - The current user is automatically included — only provide the other employee's ID
-  - Set `addToAllOccurrences: true` for recurring events when appropriate
-  - Confirm 1:1 created and linked to calendar
-
-3. If NO matching calendar event found (or user explicitly says "no calendar event"):
-  - Fall back to ad-hoc creation
-  - Call one-on-ones_create with `type: "ad_hoc"`, `otherEmployeeId`, and `startTime`
+2. Collect or confirm the start time
+  - Use the user-provided meeting time when available
   - `startTime` must be ISO 8601 without timezone offset (e.g., "2025-01-15T10:00:00")
   - The backend interprets the time in the user's configured timezone
+
+3. Create the 1:1
+  - Call one-on-ones_create with `type: "ad_hoc"`, `otherEmployeeId`, and `startTime`
   - Confirm ad-hoc 1:1 created
+
+Optional calendar-linked path:
+- If a valid `calendarEventId` is already available from another workflow, one-on-ones_create also supports `type: "calendar_event"` with `otherEmployeeId` and `calendarEventId`
+- This skill should not describe or perform a discovery flow for `calendarEventId`
 
 ## Workflow: Archive 1:1s
 

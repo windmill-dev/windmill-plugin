@@ -1,6 +1,8 @@
 ---
 name: create-pulse
 description: Context and guidance for creating pulse surveys. Use when user wants to create a new pulse, gather feedback or sentiment from their team, or asks to "ask the team" about something.
+domain: pulses
+resourceFilename: creating_pulses_skill.md
 ---
 
 # Creating Pulses

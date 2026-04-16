@@ -1,6 +1,8 @@
 ---
 name: collect-feedback
 description: Context and guidance for collecting user-initiated feedback about colleagues. Use when user wants to give feedback to a coworker.
+domain: feedback
+resourceFilename: collecting_user_initiated_feedback_skill.md
 ---
 
 # Collecting User-Initiated Employee Feedback
