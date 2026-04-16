@@ -1,0 +1,21 @@
+name: Validate Skill Frontmatter
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-skill-frontmatter:
+    runs-on: blacksmith-2vcpu-ubuntu-2204
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate Windmill skill frontmatter
+        run: python scripts/validate_skill_frontmatter.py
