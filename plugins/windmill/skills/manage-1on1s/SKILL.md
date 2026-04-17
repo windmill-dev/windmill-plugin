@@ -66,23 +66,78 @@ Critical: Always load before update
 1. Resolve the correct one-on-one (see Date Disambiguation above)
 2. Load current page content via one-on-ones_agenda_load using that `oneOnOneId`
 3. Build full replacement content (never delete content unless user explicitly requests)
-4. Call one-on-ones_agenda_update with `oneOnOneId` and complete new content
+4. Update using the correct tool based on the format returned by the load tool:
+   - If the load tool returned content as a **string** (markdown): use one-on-ones_agenda_update with markdown content
+   - If the load tool returned content as a **JSON object** (ProseMirror JSON): use one-on-ones_agenda_update_json with ProseMirror JSON content
 5. Confirm with page link
 
-Notes structure guidelines:
-- Format: Markdown
+Notes structure guidelines (applies to both formats):
 - Use "Agenda" and "Action Items" H2 headers when content exists
-- Use bullet points (`*` markdown notation) for agenda items
-- Use markdown task list checkboxes (`- [ ]`) ONLY for action items
+- Use bullet points for agenda items
+- Use task list checkboxes ONLY for action items
 - Preserve existing content when adding new items
 - Attribution: After each item, add a dash followed by the contributor's name in bold+italic
-  - Syntax: `- ***Name***` (e.g., `* Discuss project timeline - ***Max***`)
   - If both employees share the same first name, use "FirstName LastInitial." (e.g., "Matt E."). If they also share the same last initial, use the full name (e.g., "Matt Ellis"). Otherwise, just use the first name.
   - Omit attribution if assignee unknown or both employees responsible
 - Agenda item placement:
-  - If no discussion question headers exist (bold text like `**Question?**`), add items as top-level bullets
-  - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold `**Other**` header at the bottom of the agenda
-  - Only add the `**Other**` header when question headers already exist
+  - A "discussion question header" is bolded text phrased as a question (e.g. "What's blocking you?")
+  - If no discussion question headers exist, add items as top-level bullets
+  - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold "Other" header at the bottom of the agenda
+  - Only add the "Other" header when question headers already exist
+
+### When content is Markdown (string)
+- Use `*` for bullet points
+- Use `- [ ]` for action item checkboxes
+- Use `**bold**` for headers and emphasis
+- Attribution syntax: `- ***Name***` (e.g., `* Discuss project timeline - ***Max***`)
+
+### When content is ProseMirror JSON (object)
+
+#### ProseMirror JSON Format Reference
+
+Page content uses ProseMirror JSON — the canonical document format of the rich-text editor.
+
+Document: { "type": "doc", "content": [...blocks] }
+
+Block nodes:
+- { "type": "paragraph", "content": [...inline] }
+- { "type": "heading", "attrs": { "level": 1-6 }, "content": [...inline] }
+- { "type": "bulletList", "content": [...listItems] }
+- { "type": "orderedList", "content": [...listItems] }
+- { "type": "listItem", "content": [paragraph, ...blocks] }  (first child MUST be paragraph)
+- { "type": "taskList", "content": [...taskItems] }
+- { "type": "taskItem", "attrs": { "checked": true|false }, "content": [paragraph, ...] }
+- { "type": "blockquote", "content": [...blocks] }
+- { "type": "codeBlock", "content": [...text] }
+- { "type": "horizontalRule" }
+- { "type": "table", "content": [...tableRows] }
+- { "type": "tableRow", "content": [...cells] }
+- { "type": "tableCell", "attrs": { "colspan": 1, "rowspan": 1, "colwidth": null }, "content": [...blocks] }
+- { "type": "tableHeader", "attrs": { "colspan": 1, "rowspan": 1, "colwidth": null }, "content": [...blocks] }
+
+Inline:
+- { "type": "text", "text": "..." }
+- { "type": "text", "text": "...", "marks": [...marks] }
+- { "type": "hardBreak" }
+
+Marks (array on text nodes):
+- { "type": "bold" }
+- { "type": "italic" }
+- { "type": "strike" }
+- { "type": "code" }
+- { "type": "link", "attrs": { "href": "..." } }
+- { "type": "highlight", "attrs": { "color": "#hex" } }
+- { "type": "superscript" }
+- { "type": "subscript" }
+
+Rules:
+- Omit "attrs" when all values are defaults
+- Omit "content" on leaf nodes (horizontalRule, hardBreak)
+- Omit "marks" on text nodes with no formatting
+- listItem first child must be a paragraph
+- Table cells contain block nodes (at minimum one paragraph)
+- When updating, always return the FULL document — the system diffs and applies only the changes
+- CRITICAL: Escape double quotes inside text values with backslash. Example: { "text": "Discuss the \"Project Alpha\" initiative" }
 
 ## Tool Usage Patterns
 

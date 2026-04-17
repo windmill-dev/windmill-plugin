@@ -99,7 +99,16 @@ When users ask to "add" people to a pulse, they want to **expand the pulse confi
 4. **Construct expanded filter** - ONLY if the people aren't already covered:
    - Keep ALL existing filter criteria
    - Add new criteria that extends (not replaces) the scope
-   - Filter fields within the same object are ANDed - use `or` array for union
+   - The participant filter must remain a SINGLE employee filter object
+   - Do NOT invent `or` or `and` branches; they are not supported by this MCP filter schema
+   - If the desired union cannot be represented as one filter object, explain the limitation and confirm a replacement scope with the user before updating
+
+### Using Presets vs Explicit IDs
+
+For NEW participant filter inputs:
+- Prefer `preset: "me"`, `preset: "my-direct-reports"`, or `preset: "my-subtree"` when the scope is relative to the current authenticated user
+- Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree
+- Loaded `participantFilter` values may still appear in expanded primitive form because presets are resolved server-side before persistence
 
 ### Important: Check Before Updating
 
@@ -108,26 +117,23 @@ If the pulse uses `ancestorManagerIds: ["EMPL-1"]` (Michael's team), anyone repo
 - Jim's reports therefore also report up to Michael
 - Adding `managerIds: [Jim]` would be redundant or even harmful (AND logic reduces results)
 
-### Example: When Update IS Needed
+### Example: When Update Is Needed
 
 Pulse filter: `{employeeIds: ["EMPL-2", "EMPL-3"]}` (specific people only)
 Request: "Add Jim's direct reports"
 
-Update with:
-{
-  "pulseId": "WT-1",
-  "participants": {
-    "or": [
-      {"employeeIds": ["EMPL-2", "EMPL-3"]}, // previous participants
-      {"managerIds": ["EMPL-3"]} // jims employeeId
-    ]
-  }
-}
+This is NOT expressible as a single MCP employee filter object without changing the semantics.
+
+Do not fabricate an `or` branch. Instead:
+- Explain that the current participant filter is "specific people only"
+- Explain that "specific people" plus "Jim's direct reports" cannot be represented as one supported participant filter object
+- Ask whether the user wants to replace the participant scope with a different single filter, such as Jim's direct reports only, Jim's subtree, or a new explicit employee list
 
 ### Common Mistakes to Avoid
 
 - **DO NOT** make destructive updates without checking enrollment first
 - **DO NOT** use only the new filter - this removes existing participants
+- **DO NOT** use unsupported `or` or `and` arrays in participant filters
 - **DO NOT** combine managerIds with ancestorManagerIds in same filter object (AND logic may return empty set)
 
 ### When participantFilter is Not Visible
@@ -143,9 +149,9 @@ Who users can select depends on their role:
 
 | Role | Can Use |
 |------|---------|
-| ADMIN | Any filter: `employeeIds`, `ancestorManagerIds`, `managerIds`, `employeeGroupIds` |
-| MANAGER | `employeeIds`, `ancestorManagerIds` (own ID only - their subtree) |
-| IC | `employeeIds` only (accessible employees) |
+| ADMIN | Any filter: `preset`, `employeeIds`, `ancestorManagerIds`, `managerIds`, `employeeGroupIds` |
+| MANAGER | `employeeIds`, `preset: "my-subtree"`, `preset: "my-direct-reports"` |
+| IC | `employeeIds`, `preset: "me"` |
 
 **Rules:**
 - Anonymous pulses require 3+ participants
