@@ -76,31 +76,43 @@ Determine who should receive this pulse.
 
 Construct an employee filter based on the user's input, and confirm the total count with the user after testing and validating your filter construction.
 
+Prefer `preset` when the requested scope is relative to the current authenticated user:
+- `preset: "me"`
+- `preset: "my-direct-reports"`
+- `preset: "my-subtree"`
+
+Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree.
+
 Permission Model for Employee Selection:
 WHO the user can select depends on their role:
 
 ADMIN users:
 - Can construct ANY employee filter
-- Can use `ancestorManagerIds`, `managerIds`, `employeeIds`, `employeeGroupIds`
+- Can use `preset`, `ancestorManagerIds`, `managerIds`, `employeeIds`, `employeeGroupIds`
 - Can select anyone in the organization
 
 MANAGER users:
 - Can list employees by name (`employeeIds`)
-- Can filter by their organizational subtree (`ancestorManagerIds` with their own ID)
+- Should prefer `preset: "my-subtree"` for their full reporting tree
+- Should prefer `preset: "my-direct-reports"` for their direct reports
 - CANNOT use arbitrary manager IDs outside their tree
 
 IC (Individual Contributor) users:
-- Can ONLY list specific employees by name (`employeeIds`)
-- CANNOT use `ancestorManagerIds` or `managerIds`
+- Can use `preset: "me"` for themselves
+- Can list specific employees by name (`employeeIds`)
+- CANNOT use `preset: "my-subtree"`, `preset: "my-direct-reports"`, `ancestorManagerIds`, or `managerIds`
 
 The system validates access using "visible subtrees" - managers see their reports, ICs see themselves and peers they collaborate with.
 
 Common patterns:
 - "everyone" -> Only admins can do this (omit specific filters)
+- "just me" -> Use `preset: "me"`
+- "my team" / "full team" -> Use `preset: "my-subtree"` when the team is the current user's own tree
+- "my direct reports" -> Use `preset: "my-direct-reports"` when the directs are the current user's own directs
 - "specific people" -> Use `employeeIds` (all roles can do this for accessible employees)
 - Employee groups -> Use `employeeGroupIds` (admins, or managers if group is in their tree)
 
-Whenever constructing a complex filter, confirm the included employees with the user prior to creating the pulse.
+Whenever constructing a participant filter, confirm the included employees with the user prior to creating the pulse.
 
 ### UI Participant Presets (for reference)
 
@@ -108,8 +120,9 @@ The product UI offers these preset patterns that users may reference:
 
 | User Says | UI Preset | Filter Implementation |
 |-----------|-----------|----------------------|
-| "my team" | My Team | ancestorManagerIds: [currentUserId] |
-| "my direct reports" | My Direct Reports | managerIds: [currentUserId] |
+| "just me" | Me | preset: "me" |
+| "my team" | My Team | preset: "my-subtree" |
+| "my direct reports" | My Direct Reports | preset: "my-direct-reports" |
 | "everyone" | Everyone | (admins only) omit specific filters |
 | "specific people" | Specific People | employeeIds: [...] |
 | "a group" | Groups | employeeGroupIds: [...] |
