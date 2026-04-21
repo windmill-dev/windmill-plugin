@@ -80,8 +80,8 @@ Construct an employee filter based on the user's input, and confirm the total co
 
 Prefer `preset` when the requested scope is relative to the current authenticated user:
 - `preset: "me"`
-- `preset: "my-direct-reports"`
-- `preset: "my-subtree"`
+- `preset: "my-directs"`
+- `preset: "my-org"`
 
 Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree.
 
@@ -95,22 +95,22 @@ ADMIN users:
 
 MANAGER users:
 - Can list employees by name (`employeeIds`)
-- Should prefer `preset: "my-subtree"` for their full reporting tree
-- Should prefer `preset: "my-direct-reports"` for their direct reports
+- Should prefer `preset: "my-org"` for their reporting org: themselves plus all direct and indirect reports
+- Should prefer `preset: "my-directs"` for their direct reports
 - CANNOT use arbitrary manager IDs outside their tree
 
 IC (Individual Contributor) users:
 - Can use `preset: "me"` for themselves
 - Can list specific employees by name (`employeeIds`)
-- CANNOT use `preset: "my-subtree"`, `preset: "my-direct-reports"`, `ancestorManagerIds`, or `managerIds`
+- CANNOT use `preset: "my-org"`, `preset: "my-directs"`, `ancestorManagerIds`, or `managerIds`
 
 The system validates access using "visible subtrees" - managers see their reports, ICs see themselves and peers they collaborate with.
 
 Common patterns:
 - "everyone" -> Only admins can do this (omit specific filters)
 - "just me" -> Use `preset: "me"`
-- "my team" / "full team" -> Use `preset: "my-subtree"` when the team is the current user's own tree
-- "my direct reports" -> Use `preset: "my-direct-reports"` when the directs are the current user's own directs
+- "my team" / "my org" / "full team" -> Use `preset: "my-org"` when the scope is the current user's own reporting org. This is not the whole company.
+- "my direct reports" / "my directs" -> Use `preset: "my-directs"` when the directs are the current user's own directs
 - "specific people" -> Use `employeeIds` (all roles can do this for accessible employees)
 - Employee groups -> Use `employeeGroupIds` (admins, or managers if group is in their tree)
 
@@ -123,8 +123,8 @@ The product UI offers these preset patterns that users may reference:
 | User Says | UI Preset | Filter Implementation |
 |-----------|-----------|----------------------|
 | "just me" | Me | preset: "me" |
-| "my team" | My Team | preset: "my-subtree" |
-| "my direct reports" | My Direct Reports | preset: "my-direct-reports" |
+| "my team" / "my org" | My Team | preset: "my-org" |
+| "my direct reports" / "my directs" | My Direct Reports | preset: "my-directs" |
 | "everyone" | Everyone | (admins only) omit specific filters |
 | "specific people" | Specific People | employeeIds: [...] |
 | "a group" | Groups | employeeGroupIds: [...] |

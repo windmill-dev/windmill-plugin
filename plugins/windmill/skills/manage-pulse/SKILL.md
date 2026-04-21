@@ -106,7 +106,7 @@ When users ask to "add" people to a pulse, they want to **expand the pulse confi
 ### Using Presets vs Explicit IDs
 
 For NEW participant filter inputs:
-- Prefer `preset: "me"`, `preset: "my-direct-reports"`, or `preset: "my-subtree"` when the scope is relative to the current authenticated user
+- Prefer `preset: "me"`, `preset: "my-directs"`, or `preset: "my-org"` when the scope is relative to the current authenticated user
 - Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree
 - Loaded `participantFilter` values may still appear in expanded primitive form because presets are resolved server-side before persistence
 
@@ -127,7 +127,7 @@ This is NOT expressible as a single MCP employee filter object without changing 
 Do not fabricate an `or` branch. Instead:
 - Explain that the current participant filter is "specific people only"
 - Explain that "specific people" plus "Jim's direct reports" cannot be represented as one supported participant filter object
-- Ask whether the user wants to replace the participant scope with a different single filter, such as Jim's direct reports only, Jim's subtree, or a new explicit employee list
+- Ask whether the user wants to replace the participant scope with a different single filter, such as Jim's direct reports only, Jim's reporting org, or a new explicit employee list
 
 ### Common Mistakes to Avoid
 
@@ -139,7 +139,7 @@ Do not fabricate an `or` branch. Instead:
 ### When participantFilter is Not Visible
 
 If `pulse_query` doesn't show participantFilter:
-- "My team" pulse from user X likely uses `ancestorManagerIds: [X's ID]`
+- "My team" or "my org" pulse from user X likely uses `ancestorManagerIds: [X's ID]`
 - Check if the people to add are in that subtree FIRST
 - If they're already included, inform the user - no update needed
 
@@ -150,7 +150,7 @@ Who users can select depends on their role:
 | Role | Can Use |
 |------|---------|
 | ADMIN | Any filter: `preset`, `employeeIds`, `ancestorManagerIds`, `managerIds`, `employeeGroupIds` |
-| MANAGER | `employeeIds`, `preset: "my-subtree"`, `preset: "my-direct-reports"` |
+| MANAGER | `employeeIds`, `preset: "my-org"`, `preset: "my-directs"` |
 | IC | `employeeIds`, `preset: "me"` |
 
 **Rules:**
