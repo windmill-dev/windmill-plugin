@@ -34,6 +34,8 @@ The first time Claude calls a Windmill tool, your browser will open for you to s
 
 There's no admin setup. Each person installs the plugin and authenticates individually with their own Windmill account.
 
+For details on how Windmill roles and permissions work, see [Permissions and access](https://help.gowindmill.com/permissions-and-access#permissions-and-access).
+
 ## Usage examples
 
 Once connected, you can ask Claude to work with your Windmill data. A few examples across what the plugin supports:
