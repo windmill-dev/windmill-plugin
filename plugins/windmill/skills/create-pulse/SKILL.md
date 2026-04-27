@@ -95,7 +95,7 @@ ADMIN users:
 
 MANAGER users:
 - Can list employees by name (`employeeIds`)
-- Should prefer `preset: "my-org"` for their reporting org: themselves plus all direct and indirect reports
+- Should prefer `preset: "my-org"` for their full reporting tree
 - Should prefer `preset: "my-directs"` for their direct reports
 - CANNOT use arbitrary manager IDs outside their tree
 
@@ -109,8 +109,8 @@ The system validates access using "visible subtrees" - managers see their report
 Common patterns:
 - "everyone" -> Only admins can do this (omit specific filters)
 - "just me" -> Use `preset: "me"`
-- "my team" / "my org" / "full team" -> Use `preset: "my-org"` when the scope is the current user's own reporting org. This is not the whole company.
-- "my direct reports" / "my directs" -> Use `preset: "my-directs"` when the directs are the current user's own directs
+- "my team" / "full team" -> Use `preset: "my-org"` when the team is the current user's own tree
+- "my direct reports" -> Use `preset: "my-directs"` when the directs are the current user's own directs
 - "specific people" -> Use `employeeIds` (all roles can do this for accessible employees)
 - Employee groups -> Use `employeeGroupIds` (admins, or managers if group is in their tree)
 
@@ -123,8 +123,8 @@ The product UI offers these preset patterns that users may reference:
 | User Says | UI Preset | Filter Implementation |
 |-----------|-----------|----------------------|
 | "just me" | Me | preset: "me" |
-| "my team" / "my org" | My Team | preset: "my-org" |
-| "my direct reports" / "my directs" | My Direct Reports | preset: "my-directs" |
+| "my team" | My Team | preset: "my-org" |
+| "my direct reports" | My Direct Reports | preset: "my-directs" |
 | "everyone" | Everyone | (admins only) omit specific filters |
 | "specific people" | Specific People | employeeIds: [...] |
 | "a group" | Groups | employeeGroupIds: [...] |
