@@ -127,7 +127,7 @@ This is NOT expressible as a single MCP employee filter object without changing 
 Do not fabricate an `or` branch. Instead:
 - Explain that the current participant filter is "specific people only"
 - Explain that "specific people" plus "Jim's direct reports" cannot be represented as one supported participant filter object
-- Ask whether the user wants to replace the participant scope with a different single filter, such as Jim's direct reports only, Jim's reporting org, or a new explicit employee list
+- Ask whether the user wants to replace the participant scope with a different single filter, such as Jim's direct reports only, Jim's subtree, or a new explicit employee list
 
 ### Common Mistakes to Avoid
 
@@ -139,7 +139,7 @@ Do not fabricate an `or` branch. Instead:
 ### When participantFilter is Not Visible
 
 If `pulse_query` doesn't show participantFilter:
-- "My team" or "my org" pulse from user X likely uses `ancestorManagerIds: [X's ID]`
+- "My team" pulse from user X likely uses `ancestorManagerIds: [X's ID]`
 - Check if the people to add are in that subtree FIRST
 - If they're already included, inform the user - no update needed
 
