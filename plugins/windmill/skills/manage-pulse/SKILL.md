@@ -37,7 +37,7 @@ New pulses start ACTIVE.
 | pulse_send_now | Send pulse immediately | Requires ACTIVE status |
 | pulse_send_nudge | User triggered notification | Requires `sessionId` and explicit `employeeIds`; 15-minute cooldown per employee globally |
 | pulse_runs_query | List runs | - |
-| pulse_employee_runs_query | Get responses | - |
+| pulse_employee_runs_query | Get responses; supports `attentionStatus` filter (`NEEDS_MY_RESPONSE`, `AWAITING_PARTICIPANT_RESPONSE`, `MISSED_RESPONSE`) | - |
 | pulse_employees_query | List participants | Shows enrolled employees |
 | pulse_owner_add | Add owner | - |
 | pulse_owner_update | Change owner access | - |
@@ -206,12 +206,27 @@ Do not leak the actual enum values to the user. Use friendly names and labels in
 **CRITICAL**: To send nudges, call `pulse_send_nudge`:
 1. Find the pulse via `pulse_query`
 2. Find the target run/session via `pulse_runs_query` (usually the latest run)
-3. Determine the specific employees to nudge
+3. Determine the specific employees to nudge — call `pulse_employee_runs_query` with `pulseSessionIds: [sessionId]` and `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` to get the non-responders for that session
 4. Call `pulse_send_nudge` with `pulseId`, `sessionId`, and explicit `employeeIds`
 5. Report the result to the user
 
 Important:
 - There is no "nudge all non-responders" shortcut parameter. You must send explicit `employeeIds`.
+- `AWAITING_PARTICIPANT_RESPONSE` is the right filter for "everyone who still hasn't responded" — scope it to the session to avoid pulling non-responders from other runs.
+
+## Checking on Pulse Responses
+
+Use `pulse_employee_runs_query` with the `attentionStatus` filter to answer common status questions without manually cross-referencing participants and responses.
+
+| User Intent | Filter | Notes |
+|-------------|--------|-------|
+| "What pulses do I need to respond to?" / "What needs my attention?" | `attentionStatus: "NEEDS_MY_RESPONSE"` | Auto-scopes to the current employee. Only includes active pulses with an opened chat, no response yet, and an open/no deadline. Do not also pass an `employee` filter. |
+| "Who still hasn't responded?" / "Who's outstanding on this pulse?" | `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` | Combine with `pulseIds` or `pulseSessionIds` to scope to a specific pulse or run. Add an `employee` filter for manager/admin views over a subset. |
+| "Who missed the deadline?" / "Who never responded before it expired?" | `attentionStatus: "MISSED_RESPONSE"` | Expired sessions only. |
+
+Pair with `pulse_employee_runs_count` when the user only wants the number (e.g., "how many people still owe me a response?").
+
+For pulse-level rollups (counts of completed runs, last run timestamp, etc.) use `pulse_runs_query` rather than aggregating employee runs by hand.
 
 ## Product Rules
 
