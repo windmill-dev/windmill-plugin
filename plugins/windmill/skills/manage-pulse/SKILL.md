@@ -173,7 +173,7 @@ Who the pulse appears to be from (cosmetic only):
 
 | Value | Behavior |
 |-------|----------|
-| NONE | From "Windy" / system (default) |
+| NONE | From Windmill / system (default) |
 | SPECIFIC_EMPLOYEE | From specific person (requires `requesterEmployeeId`) |
 | MANAGER | From each participant's direct manager |
 
