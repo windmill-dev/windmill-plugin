@@ -22,10 +22,10 @@ Use this skill when:
 
 ## Vocabulary
 
-- Pulse: AI-driven conversational survey where Windy chats with employees
+- Pulse: AI-driven conversational survey where the agent chats with employees
 - Motivation: What the creator wants to learn (drives AI topic generation)
-- Discussion Guide: Topics that guide Windy's conversation with employees
-- Run: A single round of a pulse. Windy reaches out to participants and covers the discussion topics.
+- Discussion Guide: Topics that guide the agent's conversation with employees
+- Run: A single round of a pulse. The agent reaches out to participants and covers the discussion topics.
 - Participant: Employee who receives the pulse
 
 ## CRITICAL: How Pulse Creation Works
@@ -70,7 +70,7 @@ Guidelines for good topics:
 - Each should directly relate to motivation, and seek to cover a single aspect of the motivation
 - Aim for 2-4 topics typically
 
-These topics will be used by Windy when conducting the pulse. Each topic will be covered with the user.
+These topics will be used by the agent when conducting the pulse. Each topic will be covered with the user.
 
 ### Step 3: Select Participants
 
@@ -162,7 +162,7 @@ Reminder Delay: How long to wait before sending the first **reminder** notificat
 
 CRITICAL DISAMBIGUATION: When the user says "send it now" or "send immediately", they mean **send the pulse now** (use `pulse_send_now` after creation). Do NOT interpret "send now" as "set the reminder delay to 0 or 1 minute". The reminder delay is a separate concept from when the pulse is sent.
 
-Run Updates: Whether the creator gets updates from Windy throughout each run
+Run Updates: Whether the creator gets updates from the agent throughout each run
 
 ### Step 5: Create Pulse (Optionally with Schedule)
 Call `pulse_create` with:
@@ -173,7 +173,7 @@ Call `pulse_create` with:
 - `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (optional, defaults to NAMED if omitted/null)
 - `durationMinutes`: Response duration in minutes, min 30 (optional, omit for no deadline)
 - `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse — it only controls reminder timing.
-- `runUpdatesEnabled`: Whether creator gets updates from Windy throughout each run (required boolean)
+- `runUpdatesEnabled`: Whether creator gets updates from the agent throughout each run (required boolean)
 - Optional schedule fields (use at most one):
   - `scheduleManual: true`
   - `scheduleOneTime`
