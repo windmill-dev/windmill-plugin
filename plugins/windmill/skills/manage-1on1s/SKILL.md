@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 meetings. Use when users want to create 1:1s, update shared 1:1 notes pages, or work with 1:1 calendar events.
+description: Context and guidance for managing 1:1 meetings. Use when users want to create ad-hoc or calendar-linked 1:1s, update shared 1:1 notes pages, or work with 1:1 calendar events.
 domain: one-on-ones
 resourceFilename: managing_one-on-ones_skill.md
 ---
@@ -49,7 +49,9 @@ Public creation should default to ad-hoc creation.
   - Confirm ad-hoc 1:1 created
 
 Optional calendar-linked path:
-- If a valid `calendarEventId` is already available from another workflow, one-on-ones_create also supports `type: "calendar_event"` with `otherEmployeeId` and `calendarEventId`
+- If a valid `calendarEventId` is already available from another workflow, one-on-ones_create also supports `type: "calendar_event"` with `otherEmployeeId`, `calendarEventId`, and `addToAllOccurrences`
+- `addToAllOccurrences` must be a boolean: set `true` when the user wants all occurrences of a recurring meeting labeled, and `false` for only this occurrence or non-recurring meetings
+- If a recurring event scope is ambiguous, ask whether to label only this occurrence or all occurrences
 - This skill should not describe or perform a discovery flow for `calendarEventId`
 
 ## Workflow: Archive 1:1s
