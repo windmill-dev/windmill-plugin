@@ -18,6 +18,7 @@ Use when users want to update, control, or check on existing pulses.
 - **Nudge**: User triggered notification to respond to a pulse
 - **Requester**: Who the pulse appears to be from
 - **Launched**: Whether or not the pulse has been taken out of its initial "draft" state. This happens when a non-manual schedule is set via `pulse_update`, or when `pulse_send_now` is used.
+- **Live Response Streaming**: A separate feed that posts each employee response into a Slack channel as participants finish (independent of the end-of-run report). Disabled by default. The Windmill Slack bot must be a member of the channel. Anonymous pulses cannot stream — the system silently disables it if both are configured.
 
 ## Statuses
 
@@ -49,14 +50,14 @@ Use `pulse_update` to set schedule with ONE of these fields:
 
 | Field | When to Use | Example |
 |-----------|-------------|---------|
-| `scheduleManual: true` | No automatic runs | `{pulseId: "WT-1", scheduleManual: true}` |
-| `scheduleOneTime` | Single scheduled send | `{pulseId: "WT-1", scheduleOneTime: {sendAt: "2024-03-15T15:00:00", timezone: "America/New_York"}}` |
+| `scheduleManual: true` | No automatic runs | `{pulseId: "WT-<id>", scheduleManual: true}` |
+| `scheduleOneTime` | Single scheduled send | `{pulseId: "WT-<id>", scheduleOneTime: {sendAt: "2024-03-15T15:00:00", timezone: "America/New_York"}}` |
 | `scheduleRecurring` | Repeating pattern | See example below |
-| `scheduleStartDateAnniversary` | Employee start-date anniversary | `{pulseId: "WT-1", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
+| `scheduleStartDateAnniversary` | Employee start-date anniversary | `{pulseId: "WT-<id>", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
 
 ### Weekly Recurring Schedule Example (every Friday at 3pm)
 {
-  "pulseId": "WT-1",
+  "pulseId": "WT-<id>",
   "scheduleRecurring": {
     "timezone": "America/New_York",
     "rules": [{
@@ -76,6 +77,10 @@ Use `pulse_update` to set schedule with ONE of these fields:
 - "first Monday of each month" -> `pulse_update` with `scheduleRecurring` monthly rule
 - "send 30 days after first day" -> `pulse_update` with `scheduleStartDateAnniversary`
 - "one year after their start date" -> `pulse_update` with `scheduleStartDateAnniversary`, offsetDays=365
+- "stream responses to #channel" / "post replies into #channel as they come in" -> `pulse_update` with `liveResponseStreamingChannel: "#channel"`
+- "stop streaming responses" / "turn off live streaming" -> `pulse_update` with `liveResponseStreamingChannel: null`
+- "don't thread the streamed responses" / "post each response separately" -> `pulse_update` with `liveResponseStreamingThreaded: false`
+- "group streamed responses in a thread again" -> `pulse_update` with `liveResponseStreamingThreaded: true`
 
 When `scheduleOneTime`, `scheduleRecurring`, or `scheduleStartDateAnniversary` is set on an unlaunched pulse, update also launches it.
 
@@ -87,7 +92,7 @@ When users ask to "add" people to a pulse, they want to **expand the pulse confi
 
 ### Step-by-Step Process for Adding Participants
 
-1. **Identify who to add** - Query employees to find the person and their reports (e.g., Jim = EMPL-3)
+1. **Identify who to add** - Query employees to find the person and their reports (e.g., Jim = EMPL-<id>)
 
 2. **Check if already included** - BEFORE making any changes:
    - Query `pulse_employees_query` to see current enrollment
@@ -112,14 +117,14 @@ For NEW participant filter inputs:
 
 ### Important: Check Before Updating
 
-If the pulse uses `ancestorManagerIds: ["EMPL-1"]` (Michael's team), anyone reporting up to Michael is ALREADY included. Don't make changes if:
+If the pulse uses `ancestorManagerIds: ["EMPL-<id>"]` (Michael's team), anyone reporting up to Michael is ALREADY included. Don't make changes if:
 - Jim reports to Michael (directly or indirectly)
 - Jim's reports therefore also report up to Michael
 - Adding `managerIds: [Jim]` would be redundant or even harmful (AND logic reduces results)
 
 ### Example: When Update Is Needed
 
-Pulse filter: `{employeeIds: ["EMPL-2", "EMPL-3"]}` (specific people only)
+Pulse filter: `{employeeIds: ["EMPL-<id>", "EMPL-<id>"]}` (specific people only)
 Request: "Add Jim's direct reports"
 
 This is NOT expressible as a single MCP employee filter object without changing the semantics.
@@ -176,6 +181,17 @@ Who the pulse appears to be from (cosmetic only):
 | NONE | From Windmill / system (default) |
 | SPECIFIC_EMPLOYEE | From specific person (requires `requesterEmployeeId`) |
 | MANAGER | From each participant's direct manager |
+
+## Live Response Streaming
+
+Configure via `pulse_update`:
+
+| Field | Purpose | Notes |
+|-------|---------|-------|
+| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel — if not, the tool returns a user-safe error asking the user to add it. |
+| `liveResponseStreamingThreaded` | When streaming, post each response as a reply in a single Slack thread instead of as a top-level message. Defaults to `true` whenever a channel is being set. | Ignored when no channel is set. |
+
+Anonymous pulses cannot stream responses. The service silently nulls the streaming channel if the pulse is anonymous, so warn the user (rather than calling `pulse_update`) when they ask to combine the two.
 
 ## Owner Access Levels
 

@@ -9,6 +9,7 @@ resourceFilename: managing_one-on-ones_skill.md
 
 ## Relevant Resources
 - one-on-ones_system_context.md
+- prosedown_format_spec.md
 
 ## Your Responsibilities
 - Manage 1:1 labels on calendar events
@@ -66,14 +67,12 @@ Optional calendar-linked path:
 Critical: Always load before update
 
 1. Resolve the correct one-on-one (see Date Disambiguation above)
-2. Load current page content via one-on-ones_agenda_load using that `oneOnOneId`
+2. Load current page content via one-on-ones_notes_load using that `oneOnOneId` — it returns prosedown text
 3. Build full replacement content (never delete content unless user explicitly requests)
-4. Update using the correct tool based on the format returned by the load tool:
-   - If the load tool returned content as a **string** (markdown): use one-on-ones_agenda_update with markdown content
-   - If the load tool returned content as a **JSON object** (ProseMirror JSON): use one-on-ones_agenda_update_json with ProseMirror JSON content
+4. Update via one-on-ones_notes_update, passing the full replacement as a prosedown **string**
 5. Confirm with page link
 
-Notes structure guidelines (applies to both formats):
+Notes structure guidelines:
 - Use "Agenda" and "Action Items" H2 headers when content exists
 - Use bullet points for agenda items
 - Use task list checkboxes ONLY for action items
@@ -87,64 +86,18 @@ Notes structure guidelines (applies to both formats):
   - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold "Other" header at the bottom of the agenda
   - Only add the "Other" header when question headers already exist
 
-### When content is Markdown (string)
+### Prosedown formatting
+Prosedown is markdown extended with prosedown table/node markup. See the prosedown_format_spec.md resource for the full format.
 - Use `*` for bullet points
 - Use `- [ ]` for action item checkboxes
 - Use `**bold**` for headers and emphasis
 - Attribution syntax: `- ***Name***` (e.g., `* Discuss project timeline - ***Max***`)
-
-### When content is ProseMirror JSON (object)
-
-#### ProseMirror JSON Format Reference
-
-Page content uses ProseMirror JSON — the canonical document format of the rich-text editor.
-
-Document: { "type": "doc", "content": [...blocks] }
-
-Block nodes:
-- { "type": "paragraph", "content": [...inline] }
-- { "type": "heading", "attrs": { "level": 1-6 }, "content": [...inline] }
-- { "type": "bulletList", "content": [...listItems] }
-- { "type": "orderedList", "content": [...listItems] }
-- { "type": "listItem", "content": [paragraph, ...blocks] }  (first child MUST be paragraph)
-- { "type": "taskList", "content": [...taskItems] }
-- { "type": "taskItem", "attrs": { "checked": true|false }, "content": [paragraph, ...] }
-- { "type": "blockquote", "content": [...blocks] }
-- { "type": "codeBlock", "content": [...text] }
-- { "type": "horizontalRule" }
-- { "type": "table", "content": [...tableRows] }
-- { "type": "tableRow", "content": [...cells] }
-- { "type": "tableCell", "attrs": { "colspan": 1, "rowspan": 1, "colwidth": null }, "content": [...blocks] }
-- { "type": "tableHeader", "attrs": { "colspan": 1, "rowspan": 1, "colwidth": null }, "content": [...blocks] }
-
-Inline:
-- { "type": "text", "text": "..." }
-- { "type": "text", "text": "...", "marks": [...marks] }
-- { "type": "hardBreak" }
-
-Marks (array on text nodes):
-- { "type": "bold" }
-- { "type": "italic" }
-- { "type": "strike" }
-- { "type": "code" }
-- { "type": "link", "attrs": { "href": "..." } }
-- { "type": "highlight", "attrs": { "color": "#hex" } }
-- { "type": "superscript" }
-- { "type": "subscript" }
-
-Rules:
-- Omit "attrs" when all values are defaults
-- Omit "content" on leaf nodes (horizontalRule, hardBreak)
-- Omit "marks" on text nodes with no formatting
-- listItem first child must be a paragraph
-- Table cells contain block nodes (at minimum one paragraph)
-- When updating, always return the FULL document — the system diffs and applies only the changes
-- CRITICAL: Escape double quotes inside text values with backslash. Example: { "text": "Discuss the \"Project Alpha\" initiative" }
+- Preserve any `<table>`/`<pd-*` markup blocks exactly as loaded unless the user asks to change them
 
 ## Tool Usage Patterns
 
 Always load before write:
-- Notes pages: Load with one-on-ones_agenda_load before calling one-on-ones_agenda_update
+- Notes pages: Load with one-on-ones_notes_load before calling one-on-ones_notes_update
 
 Batch operations:
 - When labeling multiple events, process them sequentially

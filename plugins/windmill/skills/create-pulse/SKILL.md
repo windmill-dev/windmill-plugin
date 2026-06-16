@@ -23,25 +23,27 @@ Use this skill when:
 ## Vocabulary
 
 - Pulse: AI-driven conversational survey where the agent chats with employees
-- Motivation: What the creator wants to learn (drives AI topic generation)
+- Prompt: What the creator wants to learn (drives AI topic generation)
 - Discussion Guide: Topics that guide the agent's conversation with employees
 - Run: A single round of a pulse. The agent reaches out to participants and covers the discussion topics.
 - Participant: Employee who receives the pulse
+- Live Response Streaming: When enabled, each employee response is posted into a Slack channel in real time as participants finish (separately from the end-of-run report). The Windmill Slack bot must already be a member of the channel for it to be selectable. Anonymous pulses cannot stream — the system silently disables streaming on anonymous pulses even if a channel is provided.
 
 ## CRITICAL: How Pulse Creation Works
 
 Creating a pulse can include schedule configuration in the same call.
 
 The creation flow gathers and confirms:
-1. Motivation
+1. Prompt
 2. Discussion topics (can be AI-generated if needed)
 3. Participants
 4. Anonymity
 5. Run updates preference (`runUpdatesEnabled` true/false)
 6. Optional schedule preference (manual, one-time, recurring, or start-date anniversary)
+7. Optional live response streaming channel (only ask if the user mentions streaming, posting to Slack as responses come in, or similar — do not prompt by default)
 
 The tool call also requires:
-- `name` (generated from motivation/topics)
+- `name` (generated from prompt/topics)
 - `runUpdatesEnabled` (explicit boolean; do not omit)
 
 The pulse is created in ACTIVE status. If no schedule fields are provided, it defaults to MANUAL.
@@ -53,7 +55,7 @@ After creation, the user can:
 
 ## Workflow: Create Pulse
 
-### Step 1: Gather Motivation
+### Step 1: Gather Prompt
 Determine what the user wants to learn from the pulse. Effectively, this is the purpose of the pulse.
 
 Examples:
@@ -62,12 +64,12 @@ Examples:
 
 ### Step 2: Determine Discussion Topics
 
-Propose a few topics based on the motivation, then confirm with the user. Adjust based on user input.
+Propose a few topics based on the prompt, then confirm with the user. Adjust based on user input.
 
 Guidelines for good topics:
 - Open-ended questions work best
-- Satisfy the motivation in the fewest number of topics possible
-- Each should directly relate to motivation, and seek to cover a single aspect of the motivation
+- Satisfy the prompt in the fewest number of topics possible
+- Each should directly relate to prompt, and seek to cover a single aspect of the prompt
 - Aim for 2-4 topics typically
 
 These topics will be used by the agent when conducting the pulse. Each topic will be covered with the user.
@@ -164,16 +166,20 @@ CRITICAL DISAMBIGUATION: When the user says "send it now" or "send immediately",
 
 Run Updates: Whether the creator gets updates from the agent throughout each run
 
+Live Response Streaming (optional): If the user wants individual responses to land in a Slack channel as participants finish, pass `liveResponseStreamingChannel` (Slack channel name like `#pulse-results`, channel ID like `C0123456789`, or null to leave disabled) and optionally `liveResponseStreamingThreaded` (defaults true — responses thread under a single message instead of posting individually). The Windmill Slack bot must already be in the channel; if it isn't, the tool returns an error asking the user to add it. Anonymous pulses cannot stream — warn the user and leave the field unset if they ask for both.
+
 ### Step 5: Create Pulse (Optionally with Schedule)
 Call `pulse_create` with:
-- `name`: Generated from motivation/topics (required)
-- `motivation`: What they want to learn (required)
+- `name`: Generated from prompt/topics (required)
+- `prompt`: What they want to learn (required)
 - `discussionTopics`: Array of topics (required)
 - `participants`: Employee filter from Step 3 (required)
 - `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (optional, defaults to NAMED if omitted/null)
 - `durationMinutes`: Response duration in minutes, min 30 (optional, omit for no deadline)
 - `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse — it only controls reminder timing.
 - `runUpdatesEnabled`: Whether creator gets updates from the agent throughout each run (required boolean)
+- `liveResponseStreamingChannel`: Optional Slack channel reference (`#name`, `name`, or external ID like `C0123456789`) to stream individual responses into. Omit for no streaming. The Windmill Slack bot must already be in the channel.
+- `liveResponseStreamingThreaded`: Optional boolean, defaults true. Only meaningful when a streaming channel is set.
 - Optional schedule fields (use at most one):
   - `scheduleManual: true`
   - `scheduleOneTime`
