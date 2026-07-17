@@ -9,7 +9,8 @@
   },
   "plugins": [
     {
-      "name": "windmill",
+      "name": "windmill-hr",
+      "displayName": "Windmill HR",
       "description": "Connect Claude Code to Windmill for performance reviews, feedback, 1:1s, pulse surveys, and more.",
       "version": "1.0.0",
       "author": {
