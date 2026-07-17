@@ -111,8 +111,9 @@ When users ask to "add" people to a pulse, they want to **expand the pulse confi
 ### Using Presets vs Explicit IDs
 
 For NEW participant filter inputs:
-- Prefer `preset: "me"`, `preset: "my-directs"`, or `preset: "my-org"` when the scope is relative to the current authenticated user
-- Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree
+- Use explicit `employeeIds` or `preset: "me"` when the member does not have the send-all capability
+- Dynamic filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, `ancestorManagerIds`, and `employeeGroupIds` require the send-all capability
+- If a dynamic filter is denied, resolve its audience and retry with explicit `employeeIds`
 - Loaded `participantFilter` values may still appear in expanded primitive form because presets are resolved server-side before persistence
 
 ### Important: Check Before Updating
@@ -150,18 +151,12 @@ If `pulse_query` doesn't show participantFilter:
 
 ## Participant Permissions
 
-Who users can select depends on their role:
-
-| Role | Can Use |
-|------|---------|
-| ADMIN | Any filter: `preset`, `employeeIds`, `ancestorManagerIds`, `managerIds`, `employeeGroupIds` |
-| MANAGER | `employeeIds`, `preset: "my-org"`, `preset: "my-directs"` |
-| IC | `employeeIds`, `preset: "me"` |
+Members with the send-all capability may use any supported participant filter. Other members must use explicit `employeeIds` or `preset: "me"`.
 
 **Rules:**
 - Anonymous pulses require 3+ participants
 - Set `hasWindmillAccess: true` to include only Windmill members
-- ForbiddenError if user lacks access to selected employees
+- ForbiddenError if the member lacks filter access or access to selected employees
 
 ## Timing
 

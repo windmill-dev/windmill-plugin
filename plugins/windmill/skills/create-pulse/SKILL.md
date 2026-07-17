@@ -80,41 +80,19 @@ Determine who should receive this pulse.
 
 Construct an employee filter based on the user's input, and confirm the total count with the user after testing and validating your filter construction.
 
-Prefer `preset` when the requested scope is relative to the current authenticated user:
-- `preset: "me"`
-- `preset: "my-directs"`
-- `preset: "my-org"`
-
-Use explicit `employeeIds`, `managerIds`, or `ancestorManagerIds` when targeting named employees or another manager's tree.
-
-Permission Model for Employee Selection:
-WHO the user can select depends on their role:
-
-ADMIN users:
-- Can construct ANY employee filter
-- Can use `preset`, `ancestorManagerIds`, `managerIds`, `employeeIds`, `employeeGroupIds`
-- Can select anyone in the organization
-
-MANAGER users:
-- Can list employees by name (`employeeIds`)
-- Should prefer `preset: "my-org"` for their full reporting tree
-- Should prefer `preset: "my-directs"` for their direct reports
-- CANNOT use arbitrary manager IDs outside their tree
-
-IC (Individual Contributor) users:
-- Can use `preset: "me"` for themselves
-- Can list specific employees by name (`employeeIds`)
-- CANNOT use `preset: "my-org"`, `preset: "my-directs"`, `ancestorManagerIds`, or `managerIds`
-
-The system validates access using "visible subtrees" - managers see their reports, ICs see themselves and peers they collaborate with.
+Participant Filter Access:
+- Explicit `employeeIds` and `preset: "me"` are available without the send-all capability.
+- Dynamic filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, `ancestorManagerIds`, `employeeGroupIds`, and search queries require the send-all capability.
+- When a user cannot use a dynamic filter, resolve the intended audience to specific employees and retry with `employeeIds`.
+- Underlying employee visibility checks still apply to every selected employee.
 
 Common patterns:
-- "everyone" -> Only admins can do this (omit specific filters)
+- "everyone" -> Requires the send-all capability (omit specific filters)
 - "just me" -> Use `preset: "me"`
-- "my team" / "full team" -> Use `preset: "my-org"` when the team is the current user's own tree
-- "my direct reports" -> Use `preset: "my-directs"` when the directs are the current user's own directs
-- "specific people" -> Use `employeeIds` (all roles can do this for accessible employees)
-- Employee groups -> Use `employeeGroupIds` (admins, or managers if group is in their tree)
+- "my team" / "full team" -> Use `preset: "my-org"` with the send-all capability; otherwise resolve the team to `employeeIds`
+- "my direct reports" -> Use `preset: "my-directs"` with the send-all capability; otherwise resolve the reports to `employeeIds`
+- "specific people" -> Use `employeeIds`
+- Employee groups -> Use `employeeGroupIds` with the send-all capability; otherwise resolve the group to `employeeIds`
 
 Whenever constructing a participant filter, confirm the included employees with the user prior to creating the pulse.
 
@@ -125,12 +103,12 @@ The product UI offers these preset patterns that users may reference:
 | User Says | UI Preset | Filter Implementation |
 |-----------|-----------|----------------------|
 | "just me" | Me | preset: "me" |
-| "my team" | My Team | preset: "my-org" |
-| "my direct reports" | My Direct Reports | preset: "my-directs" |
-| "everyone" | Everyone | (admins only) omit specific filters |
+| "my team" | My Team | preset: "my-org" (send-all capability required) |
+| "my direct reports" | My Direct Reports | preset: "my-directs" (send-all capability required) |
+| "everyone" | Everyone | omit specific filters (send-all capability required) |
 | "specific people" | Specific People | employeeIds: [...] |
-| "a group" | Groups | employeeGroupIds: [...] |
-| "another team" | Other Teams | ancestorManagerIds: [otherManagerId] |
+| "a group" | Groups | employeeGroupIds: [...] (send-all capability required) |
+| "another team" | Other Teams | ancestorManagerIds: [otherManagerId] (send-all capability required) |
 
 Validation:
 - Anonymous pulses require 3+ participants
