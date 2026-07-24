@@ -27,7 +27,7 @@ Use this skill when:
 - Discussion Guide: Topics that guide the agent's conversation with employees
 - Run: A single round of a pulse. The agent reaches out to participants and covers the discussion topics.
 - Participant: Employee who receives the pulse
-- Live Response Streaming: When enabled, each employee response is posted into a Slack channel in real time as participants finish (separately from the end-of-run report). The Windmill Slack bot must already be a member of the channel for it to be selectable. Anonymous pulses cannot stream — the system silently disables streaming on anonymous pulses even if a channel is provided.
+- Live Response Streaming: When enabled, each employee response is posted into a Slack channel in real time as participants finish (separately from the end-of-run report). The Windmill Slack bot must already be a member of the channel for it to be selectable. Anonymous pulses cannot stream. The system silently disables streaming on anonymous pulses even if a channel is provided.
 
 ## CRITICAL: How Pulse Creation Works
 
@@ -40,7 +40,7 @@ The creation flow gathers and confirms:
 4. Anonymity
 5. Run updates preference (`runUpdatesEnabled` true/false)
 6. Optional schedule preference (manual, one-time, recurring, or start-date anniversary)
-7. Optional live response streaming channel (only ask if the user mentions streaming, posting to Slack as responses come in, or similar — do not prompt by default)
+7. Optional live response streaming channel (only ask if the user mentions streaming, posting to Slack as responses come in, or similar; do not prompt by default)
 
 The tool call also requires:
 - `name` (generated from prompt/topics)
@@ -144,7 +144,7 @@ CRITICAL DISAMBIGUATION: When the user says "send it now" or "send immediately",
 
 Run Updates: Whether the creator gets updates from the agent throughout each run
 
-Live Response Streaming (optional): If the user wants individual responses to land in a Slack channel as participants finish, pass `liveResponseStreamingChannel` (Slack channel name like `#pulse-results`, channel ID like `C0123456789`, or null to leave disabled) and optionally `liveResponseStreamingThreaded` (defaults true — responses thread under a single message instead of posting individually). The Windmill Slack bot must already be in the channel; if it isn't, the tool returns an error asking the user to add it. Anonymous pulses cannot stream — warn the user and leave the field unset if they ask for both.
+Live Response Streaming (optional): If the user wants individual responses to land in a Slack channel as participants finish, pass `liveResponseStreamingChannel` (Slack channel name like `#pulse-results`, channel ID like `C0123456789`, or null to leave disabled) and optionally `liveResponseStreamingThreaded` (defaults true: responses thread under a single message instead of posting individually). The Windmill Slack bot must already be in the channel. If it isn't, the tool returns an error asking the user to add it. Anonymous pulses cannot stream. Warn the user and leave the field unset if they ask for both.
 
 ### Step 5: Create Pulse (Optionally with Schedule)
 Call `pulse_create` with:
@@ -154,7 +154,7 @@ Call `pulse_create` with:
 - `participants`: Employee filter from Step 3 (required)
 - `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (optional, defaults to NAMED if omitted/null)
 - `durationMinutes`: Response duration in minutes, min 30 (optional, omit for no deadline)
-- `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse — it only controls reminder timing.
+- `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse; it only controls reminder timing.
 - `runUpdatesEnabled`: Whether creator gets updates from the agent throughout each run (required boolean)
 - `liveResponseStreamingChannel`: Optional Slack channel reference (`#name`, `name`, or external ID like `C0123456789`) to stream individual responses into. Omit for no streaming. The Windmill Slack bot must already be in the channel.
 - `liveResponseStreamingThreaded`: Optional boolean, defaults true. Only meaningful when a streaming channel is set.

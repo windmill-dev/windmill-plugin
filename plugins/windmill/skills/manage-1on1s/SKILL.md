@@ -67,7 +67,7 @@ Optional calendar-linked path:
 Critical: Always load before update
 
 1. Resolve the correct one-on-one (see Date Disambiguation above)
-2. Load current page content via one-on-ones_notes_load using that `oneOnOneId` — it returns prosedown text
+2. Load current page content via one-on-ones_notes_load using that `oneOnOneId`. It returns prosedown text
 3. Build full replacement content (never delete content unless user explicitly requests)
 4. Update via one-on-ones_notes_update, passing the full replacement as a prosedown **string**
 5. Confirm with page link
@@ -93,6 +93,9 @@ Prosedown is markdown extended with prosedown table/node markup. See the prosedo
 - Use `**bold**` for headers and emphasis
 - Attribution syntax: `- ***Name***` (e.g., `* Discuss project timeline - ***Max***`)
 - Preserve any `<table>`/`<pd-*` markup blocks exactly as loaded unless the user asks to change them
+- Preserve existing employee tags such as `[Name](EMPL-id?t=uuid)` exactly as loaded
+- When the user explicitly asks to tag the other 1:1 participant, use their known employee citation ID as `[Name](EMPL-id)`; omit `?t=` so the system creates a new tag
+- Never invent an employee ID or tag someone who is not a participant in this 1:1
 
 ## Tool Usage Patterns
 
