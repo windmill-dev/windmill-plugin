@@ -18,7 +18,7 @@ Use when users want to update, control, or check on existing pulses.
 - **Nudge**: User triggered notification to respond to a pulse
 - **Requester**: Who the pulse appears to be from
 - **Launched**: Whether or not the pulse has been taken out of its initial "draft" state. This happens when a non-manual schedule is set via `pulse_update`, or when `pulse_send_now` is used.
-- **Live Response Streaming**: A separate feed that posts each employee response into a Slack channel as participants finish (independent of the end-of-run report). Disabled by default. The Windmill Slack bot must be a member of the channel. Anonymous pulses cannot stream — the system silently disables it if both are configured.
+- **Live Response Streaming**: A separate feed that posts each employee response into a Slack channel as participants finish (independent of the end-of-run report). Disabled by default. The Windmill Slack bot must be a member of the channel. Anonymous pulses cannot stream. The system silently disables it if both are configured.
 
 ## Statuses
 
@@ -165,7 +165,7 @@ Members with the send-all capability may use any supported participant filter. O
 | `notificationDelayMinutes` | Delay before first **reminder** to non-respondents (does NOT control when the pulse is sent) | 1440 (1 day) |
 | `durationMinutes` | Response deadline window (min 30, null = no deadline) | null |
 
-CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now`. Do NOT change `notificationDelayMinutes` — that controls reminder timing, not pulse delivery.
+CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now`. Do NOT change `notificationDelayMinutes`; that controls reminder timing, not pulse delivery.
 
 ## Requester Options
 
@@ -183,7 +183,7 @@ Configure via `pulse_update`:
 
 | Field | Purpose | Notes |
 |-------|---------|-------|
-| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel — if not, the tool returns a user-safe error asking the user to add it. |
+| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel. If not, the tool returns a user-safe error asking the user to add it. |
 | `liveResponseStreamingThreaded` | When streaming, post each response as a reply in a single Slack thread instead of as a top-level message. Defaults to `true` whenever a channel is being set. | Ignored when no channel is set. |
 
 Anonymous pulses cannot stream responses. The service silently nulls the streaming channel if the pulse is anonymous, so warn the user (rather than calling `pulse_update`) when they ask to combine the two.
@@ -217,13 +217,13 @@ Do not leak the actual enum values to the user. Use friendly names and labels in
 **CRITICAL**: To send nudges, call `pulse_send_nudge`:
 1. Find the pulse via `pulse_query`
 2. Find the target run/session via `pulse_runs_query` (usually the latest run)
-3. Determine the specific employees to nudge — call `pulse_employee_runs_query` with `pulseSessionIds: [sessionId]` and `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` to get the non-responders for that session
+3. Determine the specific employees to nudge: call `pulse_employee_runs_query` with `pulseSessionIds: [sessionId]` and `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` to get the non-responders for that session
 4. Call `pulse_send_nudge` with `pulseId`, `sessionId`, and explicit `employeeIds`
 5. Report the result to the user
 
 Important:
 - There is no "nudge all non-responders" shortcut parameter. You must send explicit `employeeIds`.
-- `AWAITING_PARTICIPANT_RESPONSE` is the right filter for "everyone who still hasn't responded" — scope it to the session to avoid pulling non-responders from other runs.
+- `AWAITING_PARTICIPANT_RESPONSE` is the right filter for "everyone who still hasn't responded". Scope it to the session to avoid pulling non-responders from other runs.
 
 ## Checking on Pulse Responses
 
