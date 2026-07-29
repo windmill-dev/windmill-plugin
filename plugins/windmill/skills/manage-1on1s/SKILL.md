@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 meetings. Use when users want to create ad-hoc or calendar-linked 1:1s, update shared 1:1 notes pages, or work with 1:1 calendar events.
+description: Context and guidance for managing 1:1 meetings. Use when users want to create ad-hoc or calendar-linked 1:1s, import historical notes through the in-platform flow, work with images in 1:1 notes, update shared 1:1 notes pages, or work with 1:1 calendar events.
 domain: one-on-ones
 resourceFilename: managing_one-on-ones_skill.md
 ---
@@ -61,6 +61,25 @@ Optional calendar-linked path:
 2. Call one-on-ones_archive with `oneOnOneId`
 3. Set `archiveAllOccurrences: true` for recurring calendar-linked 1:1s when appropriate
 4. Confirm 1:1 archived
+
+## Workflow: Help Users Import Existing 1:1 Notes
+
+Historical notes import is an in-platform flow, not an agent tool workflow.
+
+1. Identify the 1:1 relationship the user wants to import notes for
+2. Direct the user to that relationship's page and the "Import 1:1 Notes" action
+3. Explain that the user pastes the document content into the import dialog
+4. Recommend including dates so Windmill can match note sections to meetings
+5. Set expectations that the import may take a few minutes and will not overwrite notes already in Windmill
+6. Explain that if the document has notes for a date missing from the 1:1 timeline, Windmill may add a past 1:1 for that date and put the notes there
+
+Do not claim that historical notes import is unsupported. Do not claim to start or monitor the import because Windy has no tool for either action.
+
+## Image Capability Boundaries
+
+- Users can upload or paste images into 1:1 notes through the in-platform editor
+- Windy cannot upload a binary image or transfer an external attachment, including a Slack attachment, into a 1:1 notes page
+- Preserve existing image content during notes updates unless the user explicitly asks to remove it
 
 ## Workflow: Update 1:1 Notes
 
