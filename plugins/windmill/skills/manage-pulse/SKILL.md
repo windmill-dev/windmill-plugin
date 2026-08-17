@@ -111,8 +111,9 @@ When users ask to "add" people to a pulse, they want to **expand the pulse confi
 ### Using Presets vs Explicit IDs
 
 For NEW participant filter inputs:
-- Use explicit `employeeIds` or `preset: "me"` when the member does not have the send-all capability
-- Dynamic filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, `ancestorManagerIds`, and `employeeGroupIds` require the send-all capability
+- Explicit `employeeIds` and `preset: "me"` are available without the send-all capability
+- Manager filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, and `ancestorManagerIds` are available for teams in the member's visible or delegated reporting structure
+- Company-wide filters, `employeeGroupIds`, and search queries require the send-all capability
 - If a dynamic filter is denied, resolve its audience and retry with explicit `employeeIds`
 - Loaded `participantFilter` values may still appear in expanded primitive form because presets are resolved server-side before persistence
 

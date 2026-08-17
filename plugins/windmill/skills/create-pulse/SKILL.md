@@ -82,15 +82,16 @@ Construct an employee filter based on the user's input, and confirm the total co
 
 Participant Filter Access:
 - Explicit `employeeIds` and `preset: "me"` are available without the send-all capability.
-- Dynamic filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, `ancestorManagerIds`, `employeeGroupIds`, and search queries require the send-all capability.
+- Manager filters such as `preset: "my-directs"`, `preset: "my-org"`, `managerIds`, and `ancestorManagerIds` are available for teams in the member's visible or delegated reporting structure.
+- Company-wide filters, `employeeGroupIds`, and search queries require the send-all capability.
 - When a user cannot use a dynamic filter, resolve the intended audience to specific employees and retry with `employeeIds`.
 - Underlying employee visibility checks still apply to every selected employee.
 
 Common patterns:
 - "everyone" -> Requires the send-all capability (omit specific filters)
 - "just me" -> Use `preset: "me"`
-- "my team" / "full team" -> Use `preset: "my-org"` with the send-all capability; otherwise resolve the team to `employeeIds`
-- "my direct reports" -> Use `preset: "my-directs"` with the send-all capability; otherwise resolve the reports to `employeeIds`
+- "my team" / "full team" -> Use `preset: "my-org"`
+- "my direct reports" -> Use `preset: "my-directs"`
 - "specific people" -> Use `employeeIds`
 - Employee groups -> Use `employeeGroupIds` with the send-all capability; otherwise resolve the group to `employeeIds`
 
@@ -103,12 +104,12 @@ The product UI offers these preset patterns that users may reference:
 | User Says | UI Preset | Filter Implementation |
 |-----------|-----------|----------------------|
 | "just me" | Me | preset: "me" |
-| "my team" | My Team | preset: "my-org" (send-all capability required) |
-| "my direct reports" | My Direct Reports | preset: "my-directs" (send-all capability required) |
+| "my team" | My Team | preset: "my-org" |
+| "my direct reports" | My Direct Reports | preset: "my-directs" |
 | "everyone" | Everyone | omit specific filters (send-all capability required) |
 | "specific people" | Specific People | employeeIds: [...] |
 | "a group" | Groups | employeeGroupIds: [...] (send-all capability required) |
-| "another team" | Other Teams | ancestorManagerIds: [otherManagerId] (send-all capability required) |
+| "another team" | Other Teams | ancestorManagerIds: [otherManagerId] (visible or delegated team required) |
 
 Validation:
 - Anonymous pulses require 3+ participants

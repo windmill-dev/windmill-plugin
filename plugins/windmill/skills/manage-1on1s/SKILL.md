@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 meetings. Use when users want to create ad-hoc or calendar-linked 1:1s, import historical notes through the in-platform flow, work with images in 1:1 notes, update shared 1:1 notes pages, or work with 1:1 calendar events.
+description: Context and guidance for managing 1:1 agendas, preparation, notes, action items, and history. Use when users want to create standalone or calendar-linked 1:1 records, import historical notes through the in-platform flow, work with images in 1:1 notes, update shared 1:1 notes pages, or work with 1:1 calendar events.
 domain: one-on-ones
 resourceFilename: managing_one-on-ones_skill.md
 ---
@@ -12,7 +12,7 @@ resourceFilename: managing_one-on-ones_skill.md
 - prosedown_format_spec.md
 
 ## Your Responsibilities
-- Manage 1:1 labels on calendar events
+- Manage pair-specific 1:1 classification on calendar events
 - Update shared 1:1 notes pages
 - You can only access 1:1s where the current employee is a participant
 
@@ -20,11 +20,15 @@ resourceFilename: managing_one-on-ones_skill.md
 
 ### Pair Disambiguation
 When user refers to "my 1:1" or "my notes" without specifying which pair:
-1. Use one-on-ones_query to list their active pairs
+1. Use one-on-ones_query to list their pairs
 2. If multiple pairs exist, ask user to clarify which person/pair
 3. Once identified, proceed with the specific operation
 
 For calendar events, use one-on-one-events_query with filters to narrow down which event.
+This query includes active and inactive occurrences, including calendar-linked occurrences that
+were manually removed from 1:1s. Use `isActive` to determine whether an occurrence is currently
+active and the latest lifecycle reason to explain why it is inactive; do not infer current activity
+or cause from the stored status alone.
 
 ### Date Disambiguation
 When user refers to a 1:1 without specifying a date (e.g., "add X to my 1:1 agenda with Bob"):
@@ -34,7 +38,7 @@ When user refers to a 1:1 without specifying a date (e.g., "add X to my 1:1 agen
 
 ## Workflow: Create 1:1s
 
-Public creation should default to ad-hoc creation.
+Public creation should default to a standalone Windmill 1:1 record.
 
 1. Identify the other employee
   - Resolve the other participant and collect their `otherEmployeeId`
@@ -47,7 +51,7 @@ Public creation should default to ad-hoc creation.
 
 3. Create the 1:1
   - Call one-on-ones_create with `type: "ad_hoc"`, `otherEmployeeId`, and `startTime`
-  - Confirm ad-hoc 1:1 created
+  - Confirm that the standalone 1:1 record was created
 
 Optional calendar-linked path:
 - If a valid `calendarEventId` is already available from another workflow, one-on-ones_create also supports `type: "calendar_event"` with `otherEmployeeId`, `calendarEventId`, and `addToAllOccurrences`
@@ -55,12 +59,18 @@ Optional calendar-linked path:
 - If a recurring event scope is ambiguous, ask whether to label only this occurrence or all occurrences
 - This skill should not describe or perform a discovery flow for `calendarEventId`
 
-## Workflow: Archive 1:1s
+## Workflow: Update 1:1 Classification
 
-1. Identify the 1:1 to archive
-2. Call one-on-ones_archive with `oneOnOneId`
-3. Set `archiveAllOccurrences: true` for recurring calendar-linked 1:1s when appropriate
-4. Confirm 1:1 archived
+1. Resolve the exact pair with one-on-ones_query and occurrence with one-on-one-events_query
+2. If the user says an inactive occurrence is still a 1:1, call one-on-ones_event_confirm
+3. If the user says a calendar occurrence is not a 1:1:
+   - For a single occurrence, call one-on-ones_event_remove
+   - For the selected occurrence and future recurring occurrences, call one-on-ones_series_remove
+   - If the scope is ambiguous for a recurring event, ask before changing anything
+4. Confirm only after the tool succeeds
+
+For ad-hoc 1:1s with no calendar event, use one-on-ones_archive. Calendar-linked classification
+changes must use the pair- and event-scoped tools above.
 
 ## Workflow: Help Users Import Existing 1:1 Notes
 

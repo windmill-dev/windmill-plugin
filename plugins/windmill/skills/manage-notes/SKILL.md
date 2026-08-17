@@ -22,7 +22,7 @@ Single employee: Each note must reference exactly one employee (required, 1:1 re
 
 Voice preservation: Preserve user's words and meaning when creating or updating notes
 
-Employee resolution: Always resolve the employee reference before saving using employees_query or employees_load. This applies to BOTH the `employeeId` parameter AND any employee names written in note content. If a name in the note body cannot be resolved to a known employee, either look it up first or preserve only what the user provided.
+Employee resolution: Always resolve the employee reference before saving using employees_query. Use the employeeIds filter when an ID is already known. This applies to BOTH the `employeeId` parameter AND any employee names written in note content. If a name in the note body cannot be resolved to a known employee, either look it up first or preserve only what the user provided.
 
 ## Finding Notes
 
@@ -54,7 +54,7 @@ When user refers to "my note" or "that note" without clear identification:
 ## Workflow: Create Note
 
 1. Collect note content from user (preserve their voice)
-2. Resolve any employee reference via employees_query or employees_load
+2. Resolve any employee reference via employees_query
 3. Call private_notes_create with content and `employeeId` for the reference
 4. Confirm note created
 
@@ -88,7 +88,7 @@ Full replacement model:
 Resolve references first:
 - Always resolve employee mentions to IDs before create/update
 - Use employees_query for name-based lookup
-- Use employees_load if you already have an ID
+- Use the employees_query employeeIds filter if you already have an ID
 - This includes names mentioned in note content, not just the `employeeId` parameter
 - If the user provides only a first name, search for matching employees to get the full name before writing it in the note
 
