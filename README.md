@@ -1,6 +1,6 @@
-# windmill-plugin
+# Windmill plugin
 
-This repo contains the [Windmill](https://gowindmill.com) plugin for [Claude Code](https://claude.com/claude-code).
+This repo contains the [Windmill](https://gowindmill.com) plugin for [Claude Code](https://claude.com/claude-code) and [Cursor](https://cursor.com).
 
 The plugin lives at [`plugins/windmill/`](./plugins/windmill/) — see its [README](./plugins/windmill/README.md) for installation, usage, authentication, and privacy details.
 
