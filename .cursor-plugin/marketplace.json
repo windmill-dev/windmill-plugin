@@ -1,0 +1,17 @@
+{
+  "name": "windmill",
+  "owner": {
+    "name": "Windmill"
+  },
+  "metadata": {
+    "description": "Windmill skills and MCP integration for Cursor",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "windmill",
+      "source": "./plugins/windmill",
+      "description": "Connect Cursor to Windmill for performance reviews, feedback, 1:1s, pulse surveys, and more."
+    }
+  ]
+}

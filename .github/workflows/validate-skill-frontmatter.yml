@@ -1,11 +1,11 @@
-name: Validate Skill Frontmatter
+name: Validate Plugin Metadata
 
 on:
   pull_request:
   workflow_dispatch:
 
 jobs:
-  validate-skill-frontmatter:
+  validate-plugin-metadata:
     runs-on: blacksmith-2vcpu-ubuntu-2204
 
     steps:
@@ -19,3 +19,11 @@ jobs:
 
       - name: Validate Windmill skill frontmatter
         run: python scripts/validate_skill_frontmatter.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate Cursor plugin
+        run: node scripts/validate_cursor_plugin.mjs
