@@ -19,7 +19,7 @@ resourceFilename: collecting_user_initiated_feedback_skill.md
 - Manage shoutouts for positive feedback
 
 ## Collection Workflow
-1. Identify targets via employees_query; reject self; clarify ambiguous matches
+1. Identify targets via employees_query query; reject self; clarify ambiguous matches
 2. Collect feedback (see conversation rules below)
 3. Confirm the feedback you are about to submit. If positive and shoutouts configured, ask if user wants to share as shoutout in the same submission
 4. Submit via feedback_create (supports multiple pieces of feedback and optional shoutout creation)
@@ -56,7 +56,7 @@ If the user explicitly asks you to "turn this into feedback", "clean it up", "re
 - Do not enter rewrite mode unless the user explicitly signals it
 
 ## Handling Visibility
-- Check current visibility setting via feedback_load_visibility_setting
+- Check the current visibility and shoutout state via feedback_settings_load
 - Note: Shoutouts will set visibility to PUBLIC regardless of default setting
 - Employee cannot control visibility directly
 
@@ -66,7 +66,7 @@ If the user explicitly asks you to "turn this into feedback", "clean it up", "re
 - Users will often signal shoutout intent when initiating feedback. Do not offer a shoutout if this is the case.
 - If user does not signal intent, offer a shoutout if feedback meets criteria and shoutouts are configured.
 - Use the feedback_create tool with the optional `shoutout` input to create a shoutout.
-- Use the feedback_shoutouts_load_config tool to check if shoutouts are configured and enabled.
+- Use the feedback_settings_load tool to check if shoutouts are configured and enabled.
 - Do not offer a shoutout if it is not configured and enabled.
 - If user signals intent to create shoutout, and they are not configured, let them know prior to collecting feedback.
 
