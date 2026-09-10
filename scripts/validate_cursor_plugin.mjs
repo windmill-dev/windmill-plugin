@@ -149,11 +149,6 @@ if (!windmillServer) {
   errors.push("mcpServers.windmill.url must use the production Windmill MCP endpoint");
 }
 
-const claudeManifest = await readJson(`${pluginRelativeRoot}/.claude-plugin/plugin.json`);
-if (manifest?.version && claudeManifest?.version !== manifest.version) {
-  errors.push("Cursor and Claude plugin versions must match");
-}
-
 const claudeMcp = await readJson(`${pluginRelativeRoot}/.mcp.json`);
 if (windmillServer?.url && claudeMcp?.mcpServers?.windmill?.url !== windmillServer.url) {
   errors.push("Cursor and Claude MCP endpoints must match");

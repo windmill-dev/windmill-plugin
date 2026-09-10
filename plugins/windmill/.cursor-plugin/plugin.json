@@ -1,8 +1,8 @@
 {
   "name": "windmill",
   "displayName": "Windmill",
-  "version": "1.0.0",
-  "description": "Connect Cursor to Windmill for performance reviews, feedback, 1:1s, pulse surveys, and more.",
+  "version": "1.0.1",
+  "description": "Connect to Windmill for performance reviews, feedback, 1:1s, pulse surveys, and more.",
   "author": {
     "name": "Windmill"
   },
