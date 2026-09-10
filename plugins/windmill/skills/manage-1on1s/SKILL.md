@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 agendas, preparation, notes, action items, and history. Use when users want to create standalone or calendar-linked 1:1 records, import historical notes through the in-platform flow, work with images in 1:1 notes, update shared 1:1 notes pages, or work with 1:1 calendar events.
+description: Context and guidance for managing 1:1 agendas, preparation, notes, action items, and history. Use when users want to create standalone or calendar-linked 1:1 records, import historical notes through the in-platform flow, work with images in 1:1 notes, append/edit/replace shared 1:1 notes pages, or work with 1:1 calendar events.
 domain: one-on-ones
 resourceFilename: managing_one-on-ones_skill.md
 ---
@@ -93,12 +93,13 @@ Do not claim that historical notes import is unsupported. Do not claim to start 
 
 ## Workflow: Update 1:1 Notes
 
-Critical: Always load before update
-
 1. Resolve the correct one-on-one (see Date Disambiguation above)
-2. Load current page content via one-on-ones_notes_load using that `oneOnOneId`. It returns prosedown text
-3. Build full replacement content (never delete content unless user explicitly requests)
-4. Update via one-on-ones_notes_update, passing the full replacement as a prosedown **string**
+2. Select the narrowest mutation mode:
+   - For a new item at the end, use `append` with only the new ProseDown fragment and any needed leading newlines
+   - For a targeted change or insertion within existing notes, load current content and use `edit` with one or more sequential `oldText` → `newText` replacements
+   - Use destructive `replace` only when the user wants the whole page rewritten; load current content first and pass the complete replacement
+3. For `edit`, copy enough current text into each `oldText` to make its exact or whitespace-normalized match unique
+4. Call one-on-ones_notes_update with `oneOnOneId` and a `mutation` containing the selected `mode` plus that mode's `content` or `edits`
 5. Confirm with page link
 
 Notes structure guidelines:
@@ -128,14 +129,12 @@ Prosedown is markdown extended with prosedown table/node markup. See the prosedo
 
 ## Tool Usage Patterns
 
-Always load before write:
-- Notes pages: Load with one-on-ones_notes_load before calling one-on-ones_notes_update
+Choose the narrowest notes mutation mode:
+- Use `append` to add content at the end without loading first; include leading newlines needed to separate it from existing ProseDown
+- Use `edit` for targeted replacements; load immediately before editing so each `oldText` has exactly one exact or whitespace-normalized match
+- Use destructive `replace` only when the entire page should be rewritten; load first and preserve everything that should remain
+- Multiple `edit` operations run sequentially in request order; if any match is missing or ambiguous, none of the changes are written
 
 Batch operations:
 - When labeling multiple events, process them sequentially
 - Confirm after each batch completes
-
-Full replacement model:
-- Notes updates replace the entire page content
-- Build the complete desired content before calling update
-- Never use partial/append operations
