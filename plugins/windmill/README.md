@@ -27,7 +27,7 @@ Then run `/reload-plugins` to activate it, and `/mcp` to confirm `plugin:windmil
 
 ## Install in Cursor
 
-Once the plugin is published, find **Windmill** in the [Cursor Marketplace](https://cursor.com/marketplace) or run `/add-plugin windmill` in Cursor.
+Once the plugin is published, find **Windmill HR** in the [Cursor Marketplace](https://cursor.com/marketplace) or run `/add-plugin windmill-hr` in Cursor.
 
 To test a local checkout before publishing, link the plugin directory into Cursor's local plugin directory:
 
