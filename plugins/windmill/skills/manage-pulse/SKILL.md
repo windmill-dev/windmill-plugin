@@ -184,7 +184,7 @@ Configure via `pulse_update`:
 
 | Field | Purpose | Notes |
 |-------|---------|-------|
-| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel. If not, the tool returns a user-safe error asking the user to add it. |
+| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel. |
 | `liveResponseStreamingThreaded` | When streaming, post each response as a reply in a single Slack thread instead of as a top-level message. Defaults to `true` whenever a channel is being set. | Ignored when no channel is set. |
 
 Anonymous pulses cannot stream responses. The service silently nulls the streaming channel if the pulse is anonymous, so warn the user (rather than calling `pulse_update`) when they ask to combine the two.
