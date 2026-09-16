@@ -50,14 +50,14 @@ Use `pulse_update` to set schedule with ONE of these fields:
 
 | Field | When to Use | Example |
 |-----------|-------------|---------|
-| `scheduleManual: true` | No automatic runs | `{pulseId: "WT-<id>", scheduleManual: true}` |
-| `scheduleOneTime` | Single scheduled send | `{pulseId: "WT-<id>", scheduleOneTime: {sendAt: "2024-03-15T15:00:00", timezone: "America/New_York"}}` |
+| `scheduleManual: true` | No automatic runs | `{pulseId: "<pulseId>", scheduleManual: true}` |
+| `scheduleOneTime` | Single scheduled send | `{pulseId: "<pulseId>", scheduleOneTime: {sendAt: "2024-03-15T15:00:00", timezone: "America/New_York"}}` |
 | `scheduleRecurring` | Repeating pattern | See example below |
-| `scheduleStartDateAnniversary` | Employee start-date anniversary | `{pulseId: "WT-<id>", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
+| `scheduleStartDateAnniversary` | Employee start-date anniversary | `{pulseId: "<pulseId>", scheduleStartDateAnniversary: {offsetDays: 30, hourOfDay: 9, timezone: "America/New_York"}}` |
 
 ### Weekly Recurring Schedule Example (every Friday at 3pm)
 {
-  "pulseId": "WT-<id>",
+  "pulseId": "<pulseId>",
   "scheduleRecurring": {
     "timezone": "America/New_York",
     "rules": [{
@@ -156,7 +156,7 @@ Members with the send-all capability may use any supported participant filter. O
 
 **Rules:**
 - Anonymous pulses require 3+ participants
-- Set `hasWindmillAccess: true` to include only Windmill members
+- Set `windmillAccess: "HAS_ACCESS"` to include only Windmill members
 - ForbiddenError if the member lacks filter access or access to selected employees
 
 ## Timing
@@ -184,7 +184,7 @@ Configure via `pulse_update`:
 
 | Field | Purpose | Notes |
 |-------|---------|-------|
-| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel. If not, the tool returns a user-safe error asking the user to add it. |
+| `liveResponseStreamingChannel` | Slack channel that receives each response in real time. Accepts `#name`, `name`, or a Slack channel ID like `C0123456789`. Pass `null` to disable. | Omit to leave unchanged. The Windmill Slack bot must be a member of the channel. |
 | `liveResponseStreamingThreaded` | When streaming, post each response as a reply in a single Slack thread instead of as a top-level message. Defaults to `true` whenever a channel is being set. | Ignored when no channel is set. |
 
 Anonymous pulses cannot stream responses. The service silently nulls the streaming channel if the pulse is anonymous, so warn the user (rather than calling `pulse_update`) when they ask to combine the two.
