@@ -1,6 +1,6 @@
 ---
 name: manage-1on1s
-description: Context and guidance for managing 1:1 agendas, preparation, notes, action items, and history. Use when users want to create standalone or calendar-linked 1:1 records, import historical notes through the in-platform flow, work with images in 1:1 notes, append/edit/replace shared 1:1 notes pages, or work with 1:1 calendar events.
+description: Guidance for managing 1:1 agendas, preparation, action items, and history. Use when users want to create standalone or calendar-linked 1:1 records, import historical notes through the in-platform flow, update shared agendas, or work with 1:1 calendar events.
 domain: one-on-ones
 resourceFilename: managing_one-on-ones_skill.md
 ---
@@ -12,29 +12,37 @@ resourceFilename: managing_one-on-ones_skill.md
 - prosedown_format_spec.md
 
 ## Your Responsibilities
-- Manage pair-specific 1:1 classification on calendar events
-- Update shared 1:1 notes pages
+- Manage which calendar events Windmill tracks as 1:1s
+- Update shared 1:1 agendas
 - You can only access 1:1s where the current employee is a participant
 
 ## Disambiguation
 
-### Pair Disambiguation
-When user refers to "my 1:1" or "my notes" without specifying which pair:
-1. Use one-on-ones_query to list their pairs
-2. If multiple pairs exist, ask user to clarify which person/pair
+### Person Disambiguation
+When the user refers to "my 1:1" or "my agenda" without specifying the other person:
+1. Use one_on_ones_partners to list their 1:1 partners
+2. If multiple partners exist, ask the user to clarify which person
 3. Once identified, proceed with the specific operation
 
-For calendar events, use one-on-one-events_query with filters to narrow down which event.
-This query includes active and inactive occurrences, including calendar-linked occurrences that
-were manually removed from 1:1s. Use `isActive` to determine whether an occurrence is currently
-active and the latest lifecycle reason to explain why it is inactive; do not infer current activity
-or cause from the stored status alone.
+Use one_on_ones_search with person and time filters to narrow down the 1:1.
+
+### Meeting Occurrence IDs
+Use the chosen search result's `oneOnOneId` for one_on_ones_open and
+one_on_ones_agenda_mutate. It identifies one meeting occurrence, not the recurring pair,
+the other employee, or the linked calendar event.
+
+Synthetic example:
+- Search returns `oneOnOneId: "01997b00-0000-7000-8000-000000000012"`,
+  `otherEmployee.employeeId: "cma7k9f2n0001lxr91cvdj8qy"`, and
+  `calendarEvent.calendarEventId: "01997b00-0000-7000-8000-000000000099"`.
+- Pass `"01997b00-0000-7000-8000-000000000012"` to one_on_ones_open as `oneOnOneId`.
+- Pass that same `oneOnOneId` to one_on_ones_agenda_mutate, copying the opened
+  `agenda.revision` into `expectedRevision`.
 
 ### Date Disambiguation
-When user refers to a 1:1 without specifying a date (e.g., "add X to my 1:1 agenda with Bob"):
-- Default to the next upcoming 1:1 for that pair
-- Use one-on-one-events_next with the pair ID to resolve it
-- If the result is null, inform the user that no upcoming 1:1 is scheduled for that pair
+When the user refers to a 1:1 without specifying a date:
+- Search with `upcomingOnly: true`, sort by start time ascending, and use the first result
+- If the result is empty, explain that no upcoming 1:1 is scheduled with that person
 
 ## Workflow: Create 1:1s
 
@@ -50,27 +58,22 @@ Public creation should default to a standalone Windmill 1:1 record.
   - The backend interprets the time in the user's configured timezone
 
 3. Create the 1:1
-  - Call one-on-ones_create with `type: "ad_hoc"`, `otherEmployeeId`, and `startTime`
+  - Call one_on_ones_create with `type: "ad_hoc"`, `otherEmployeeId`, and `startTime`
   - Confirm that the standalone 1:1 record was created
 
 Optional calendar-linked path:
-- If a valid `calendarEventId` is already available from another workflow, one-on-ones_create also supports `type: "calendar_event"` with `otherEmployeeId`, `calendarEventId`, and `addToAllOccurrences`
-- `addToAllOccurrences` must be a boolean: set `true` when the user wants all occurrences of a recurring meeting labeled, and `false` for only this occurrence or non-recurring meetings
-- If a recurring event scope is ambiguous, ask whether to label only this occurrence or all occurrences
-- This skill should not describe or perform a discovery flow for `calendarEventId`
+- Use one_on_ones_calendar_events_search to find a shared event with the other employee
+- Call one_on_ones_create with `type: "calendar_event"`, `otherEmployeeId`,
+  `calendarEventId`, and `scope`
 
-## Workflow: Update 1:1 Classification
+## Workflow: Update 1:1 Tracking
 
-1. Resolve the exact pair with one-on-ones_query and occurrence with one-on-one-events_query
-2. If the user says an inactive occurrence is still a 1:1, call one-on-ones_event_confirm
-3. If the user says a calendar occurrence is not a 1:1:
-   - For a single occurrence, call one-on-ones_event_remove
-   - For the selected occurrence and future recurring occurrences, call one-on-ones_series_remove
-   - If the scope is ambiguous for a recurring event, ask before changing anything
-4. Confirm only after the tool succeeds
+1. Resolve a tracked 1:1 with one_on_ones_search or find a shared calendar event with
+   one_on_ones_calendar_events_search
+2. To track or restore a calendar event as a 1:1, use one_on_ones_create
+3. To stop tracking a calendar-linked or standalone 1:1, use one_on_ones_delete
 
-For ad-hoc 1:1s with no calendar event, use one-on-ones_archive. Calendar-linked classification
-changes must use the pair- and event-scoped tools above.
+For standalone 1:1s with no calendar event, use one_on_ones_delete with single scope.
 
 ## Workflow: Help Users Import Existing 1:1 Notes
 
@@ -88,53 +91,54 @@ Do not claim that historical notes import is unsupported. Do not claim to start 
 ## Image Capability Boundaries
 
 - Users can upload or paste images into 1:1 notes through the in-platform editor
-- Windy cannot upload a binary image or transfer an external attachment, including a Slack attachment, into a 1:1 notes page
+- Windy cannot upload a binary image or transfer an external attachment, including a Slack attachment, into a 1:1 agenda
 - Preserve existing image content during notes updates unless the user explicitly asks to remove it
 
-## Workflow: Update 1:1 Notes
+## Agenda editing
 
-1. Resolve the correct one-on-one (see Date Disambiguation above)
-2. Select the narrowest mutation mode:
-   - For a new item at the end, use `append` with only the new ProseDown fragment and any needed leading newlines
-   - For a targeted change or insertion within existing notes, load current content and use `edit` with one or more sequential `oldText` → `newText` replacements
-   - Use destructive `replace` only when the user wants the whole page rewritten; load current content first and pass the complete replacement
-3. For `edit`, copy enough current text into each `oldText` to make its exact or whitespace-normalized match unique
-4. Call one-on-ones_notes_update with `oneOnOneId` and a `mutation` containing the selected `mode` plus that mode's `content` or `edits`
-5. Confirm with page link
+- Call `one_on_ones_open` with the exact `oneOnOneId` and
+  `include: ["agenda", "template"]` before editing. Include recordings and load the relevant
+  transcript when the request depends on one.
+- Use the opened revision with one_on_ones_agenda_mutate. Use append to add items at the end, edit
+  to add items under an existing heading or change text, and replace only for an empty agenda or a
+  requested whole-page rewrite.
+- Follow the user's explicit structure, headings, or placement. The rules below are defaults.
+- Make one mutation for all requested changes. For edit mode, make each `oldText` match unique.
+  Reopen after a revision conflict before retrying.
+- Preserve existing content, headings, order, tables, tags, and unrelated markup unless asked to
+  change them. Keep the user's wording, meaning, certainty, and known ownership; fix typos without
+  changing intent. Do not infer an owner from formatting or generic transcript labels.
+- File settled choices under Decisions and committed work under Action Items. Keep pending matters
+  under discussion, updates, or open questions; add a concise heading if none fits.
+- When the agenda already has content or a template, match its existing headings, order, and
+  bullet style. Put an item under a heading that describes it; add a concise heading only if none
+  fits. Do not wrap existing content in a new heading.
+- For an empty agenda without a template, use `## Agenda` for topics and `## Action Items` for
+  to-dos. Include a heading only when it has content. Use `*` bullets for agenda items and
+  `- [ ]` checkboxes only for action items.
+- When bold discussion-question headings exist, put an item beneath one only if it answers that
+  question. Put other items under a bold **Other** heading at the end of Agenda. Without question
+  headings, add top-level bullets and do not add **Other**.
+- Attribute a known contributor or action owner inline as ` - ***Name***`. Use the first name,
+  or a last initial/full name when the participants share a first name. Leave shared or unknown
+  ownership unattributed.
+- Preserve `<table>`, `<pd-*`, and existing employee tags exactly unless asked to edit them.
+  When asked to tag the other participant, use their known citation ID as `[Name](EMPL-id)`.
+  Never invent an employee ID.
+- Confirm only what the mutation saved.
 
-Notes structure guidelines:
-- Use "Agenda" and "Action Items" H2 headers when content exists
-- Use bullet points for agenda items
-- Use task list checkboxes ONLY for action items
-- Preserve existing content when adding new items
-- Attribution: After each item, add a dash followed by the contributor's name in bold+italic
-  - If both employees share the same first name, use "FirstName LastInitial." (e.g., "Matt E."). If they also share the same last initial, use the full name (e.g., "Matt Ellis"). Otherwise, just use the first name.
-  - Omit attribution if assignee unknown or both employees responsible
-- Agenda item placement:
-  - A "discussion question header" is bolded text phrased as a question (e.g. "What's blocking you?")
-  - If no discussion question headers exist, add items as top-level bullets
-  - If question headers exist, only place items under a question if directly answering it. Generic items go under a bold "Other" header at the bottom of the agenda
-  - Only add the "Other" header when question headers already exist
+## ProseDown format
+Prosedown is markdown extended with table and node markup. Plain markdown edits can use the
+guidelines below. Before changing rich markup or when its round-trip behavior is uncertain, load
+the full spec at file:///global/prosedown_format_spec.md.
+- Never tag someone who is not a participant in this 1:1.
 
-### Prosedown formatting
-Prosedown is markdown extended with prosedown table/node markup. See the prosedown_format_spec.md resource for the full format.
-- Use `*` for bullet points
-- Use `- [ ]` for action item checkboxes
-- Use `**bold**` for headers and emphasis
-- Attribution syntax: `- ***Name***` (e.g., `* Discuss project timeline - ***Max***`)
-- Preserve any `<table>`/`<pd-*` markup blocks exactly as loaded unless the user asks to change them
-- Preserve existing employee tags such as `[Name](EMPL-id?t=uuid)` exactly as loaded
-- When the user explicitly asks to tag the other 1:1 participant, use their known employee citation ID as `[Name](EMPL-id)`; omit `?t=` so the system creates a new tag
-- Never invent an employee ID or tag someone who is not a participant in this 1:1
+## 1:1 tracking
 
-## Tool Usage Patterns
-
-Choose the narrowest notes mutation mode:
-- Use `append` to add content at the end without loading first; include leading newlines needed to separate it from existing ProseDown
-- Use `edit` for targeted replacements; load immediately before editing so each `oldText` has exactly one exact or whitespace-normalized match
-- Use destructive `replace` only when the entire page should be rewritten; load first and preserve everything that should remain
-- Multiple `edit` operations run sequentially in request order; if any match is missing or ambiguous, none of the changes are written
-
-Batch operations:
-- When labeling multiple events, process them sequentially
-- Confirm after each batch completes
+- Search for the relevant 1:1 before changing tracking. Use lifecycle `isActive` and its reason
+  for the current state; stored status alone can be stale.
+- For a recurring calendar event, clarify whether the user means one event or the series when
+  scope is ambiguous. Use `scope: "single"` for one event and `scope: "series"` only when the
+  user intends the recurring series.
+- Creating or deleting 1:1 tracking does not schedule, cancel, or delete calendar events.
+- Confirm a tracking change only after its tool succeeds.
