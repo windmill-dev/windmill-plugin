@@ -116,7 +116,7 @@ Validation:
 - Warn if count seems wrong
 - Tool will throw ForbiddenError if user doesn't have access to selected employees
 
-CRITICAL: Pulses are only available to Windmill members. Set `hasWindmillAccess: true` in the participant filter to ensure only members are included. Non-members cannot receive pulses.
+Pulses require Windmill membership. Set `windmillAccess: "HAS_ACCESS"` in the participant filter.
 
 ### Step 4: Confirm other settings
 Confirm the other settings with the user.
