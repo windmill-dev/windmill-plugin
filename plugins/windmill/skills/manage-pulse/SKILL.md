@@ -242,7 +242,7 @@ For pulse-level rollups (counts of completed runs, last run timestamp, etc.) use
 
 ## Product Rules
 
-- Cannot change anonymity after responses collected
+- Anonymity can change with `pulse_update` only before launch. It is locked after launch; if the user needs a different mode, explain that they must create a new pulse.
 - Schedule updates: pulse must not be COMPLETED or ARCHIVED
 - Send now: pulse must be ACTIVE
 - Cannot remove last owner with WRITE access
