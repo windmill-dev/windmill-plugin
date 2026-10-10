@@ -49,7 +49,7 @@ The tool call also requires:
 The pulse is created in ACTIVE status. If no schedule fields are provided, it defaults to MANUAL.
 
 After creation, the user can:
-- Update configuration (via `pulse_update`)
+- Update name, prompt, participants, and other editable settings (via `pulse_update`)
 - Update schedule (via `pulse_update`)
 - Send it now (via `pulse_send_now`)
 
@@ -121,6 +121,8 @@ Pulses require Windmill membership. Set `windmillAccess: "HAS_ACCESS"` in the pa
 ### Step 4: Confirm other settings
 Confirm the other settings with the user.
 
+Confirm anonymity before calling `pulse_create`. It can still change with `pulse_update` before launch, but it is locked after launch.
+
 Response Anonymity Options:
 - Named (default):
   - Each response shows who said it
@@ -153,7 +155,7 @@ Call `pulse_create` with:
 - `prompt`: What they want to learn (required)
 - `discussionTopics`: Array of topics (required)
 - `participants`: Employee filter from Step 3 (required)
-- `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (optional, defaults to NAMED if omitted/null)
+- `anonymity`: NAMED, ANONYMOUS, or MANAGER_HIERARCHY (required; null defaults to NAMED)
 - `durationMinutes`: Response duration in minutes, min 30 (optional, omit for no deadline)
 - `notificationDelayMinutes`: Minutes before first **reminder** to non-respondents (optional, defaults to 1440). Do NOT change this based on when the user wants to send the pulse; it only controls reminder timing.
 - `runUpdatesEnabled`: Whether creator gets updates from the agent throughout each run (required boolean)
