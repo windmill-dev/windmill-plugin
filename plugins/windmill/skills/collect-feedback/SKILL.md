@@ -21,7 +21,7 @@ resourceFilename: collecting_user_initiated_feedback_skill.md
 ## Collection Workflow
 1. Identify targets via employees_query query; reject self; clarify ambiguous matches
 2. Collect feedback (see conversation rules below)
-3. Load current feedback settings and resolve any required visibility or shoutout choices
+3. Load current feedback settings and resolve required audience or shoutout choices
 4. Show the feedback and its audience, then ask for final confirmation
 5. Submit via feedback_create (supports multiple pieces of feedback and optional shoutout creation)
 6. Confirm success after all submissions are complete
