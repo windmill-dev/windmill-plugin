@@ -33,7 +33,7 @@ the other employee, or the linked calendar event.
 
 Synthetic example:
 - Search returns `oneOnOneId: "01997b00-0000-7000-8000-000000000012"`,
-  `otherEmployee.employeeId: "cma7k9f2n0001lxr91cvdj8qy"`, and
+  `otherEmployee: "alex-rivera-j8qy"`, and
   `calendarEvent.calendarEventId: "01997b00-0000-7000-8000-000000000099"`.
 - Pass `"01997b00-0000-7000-8000-000000000012"` to one_on_ones_open as `oneOnOneId`.
 - Pass that same `oneOnOneId` to one_on_ones_agenda_mutate, copying the opened

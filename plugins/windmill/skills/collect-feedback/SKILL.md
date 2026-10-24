@@ -1,6 +1,6 @@
 ---
 name: collect-feedback
-description: Context and guidance for collecting user-initiated feedback about colleagues. Use when user wants to give feedback to a coworker.
+description: Context and guidance for collecting user-initiated feedback with selectable visibility. Use when the user wants to give feedback to a coworker.
 domain: feedback
 resourceFilename: collecting_user_initiated_feedback_skill.md
 ---
@@ -21,9 +21,9 @@ resourceFilename: collecting_user_initiated_feedback_skill.md
 ## Collection Workflow
 1. Identify targets via employees_query query; reject self; clarify ambiguous matches
 2. Collect feedback (see conversation rules below)
-3. Load current feedback settings and resolve any required visibility or shoutout choices
+3. Call feedback_requests_query with direction "incoming" and targetEmployee for the resolved target. Ask whether the feedback should answer a matching request. Use handling_requests_for_feedback_skill.md for more pages or multiple matches. Load current feedback settings and resolve required audience or shoutout choices
 4. Show the feedback and its audience, then ask for final confirmation
-5. Submit via feedback_create (supports multiple pieces of feedback and optional shoutout creation)
+5. Save with feedback_create. Include feedbackRequestId on the entry when the user agreed to answer a request
 6. Confirm success after all submissions are complete
 
 ## Conversation Rules
@@ -57,9 +57,18 @@ If the user explicitly asks you to "turn this into feedback", "clean it up", "re
 - Do not enter rewrite mode unless the user explicitly signals it
 
 ## Handling Visibility
-- Check the current visibility and shoutout state via feedback_settings_load
-- Note: Shoutouts will set visibility to PUBLIC regardless of default setting
-- Employee cannot control visibility directly
+- Load feedback_settings_load after collecting the feedback and before confirmation
+- If the user accepts an offer to help save feedback, start this visibility workflow. That acceptance is not a visibility choice or final confirmation
+- If the user already selected an allowed visibility, use that selection
+- If multiple options are allowed and the user did not select one, ask one short question that includes the labels, audience descriptions, and default
+- The default is a recommendation. Do not select it for the user when multiple options are allowed
+- If only one option is allowed, use it without asking the user to choose
+- A visibility choice is not confirmation to save
+- After the visibility is selected, show the feedback text and selected audience, then ask for final confirmation
+- Call feedback_create only after that final confirmation
+- Pass the selected visibility with each entry in feedback_create
+- If saving reports that an option is no longer available, reload settings and ask the user to select again
+- A shoutout makes its linked feedback PUBLIC. State this in the final confirmation
 
 ## Offering Shoutouts
 - The shoutouts system will share positive feedback to a pre-configured channel
