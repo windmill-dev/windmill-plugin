@@ -34,6 +34,7 @@ Semantic search:
 Text search:
 - Use private_notes_query with `textQuery` for exact phrases or specific keywords
 - Best for finding specific words or names
+- A plain string matches only notes that contain it as written, so search one short phrase from the note. Use `full_text` mode for several keywords
 
 Employee filter:
 - Combine with semantic or text queries when user mentions a specific person
@@ -41,6 +42,7 @@ Employee filter:
 
 Fallback strategy:
 - If zero results with one search type, try the other
+- Do not tell the user that a note does not exist or did not save until a shorter phrase and `semanticQuery` also find nothing
 - Broaden filters if still no results
 - Ask user to clarify or try different keywords
 
