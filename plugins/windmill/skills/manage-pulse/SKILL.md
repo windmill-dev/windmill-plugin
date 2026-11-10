@@ -164,7 +164,7 @@ Members with the send-all capability may use any supported participant filter. O
 | Field | Purpose | Default |
 |-------|---------|---------|
 | `notificationDelayMinutes` | Delay before first **reminder** to non-respondents (does NOT control when the pulse is sent) | 1440 (1 day) |
-| `durationMinutes` | Response deadline window (min 30, null = no deadline) | null |
+| `pulse_deadline_update` | Change deadlines for existing runs or future defaults | Preview first |
 
 CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now`. Do NOT change `notificationDelayMinutes`; that controls reminder timing, not pulse delivery.
 
@@ -242,7 +242,7 @@ For pulse-level rollups (counts of completed runs, last run timestamp, etc.) use
 
 ## Product Rules
 
-- Cannot change anonymity after responses collected
+- Anonymity can change with `pulse_update` only before launch. It is locked after launch; if the user needs a different mode, explain that they must create a new pulse.
 - Schedule updates: pulse must not be COMPLETED or ARCHIVED
 - Send now: pulse must be ACTIVE
 - Cannot remove last owner with WRITE access
