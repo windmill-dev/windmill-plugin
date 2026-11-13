@@ -1,6 +1,6 @@
 ---
 name: manage-pulse
-description: Context and guidance for managing existing pulses. Use when users want to pause, resume, send now, schedule, send nudges, update participants, or check on pulse results.
+description: Context and guidance for managing pulses the user already has. Use when users want to change settings (name, prompt, requester or who the pulse comes from, owners), pause, resume, send now, schedule, send nudges, update participants, or check on pulse results.
 domain: pulses
 resourceFilename: managing_pulses_skill.md
 ---
@@ -17,8 +17,16 @@ Use when users want to update, control, or check on existing pulses.
 - **Send Now**: Manually run a pulse immediately
 - **Nudge**: User triggered notification to respond to a pulse
 - **Requester**: Who the pulse appears to be from
-- **Launched**: Whether or not the pulse has been taken out of its initial "draft" state. This happens when a non-manual schedule is set via `pulse_update`, or when `pulse_send_now` is used.
+- **Launched**: Whether the pulse is live. A new pulse is a draft: it has no participants and sends to no one. Only `pulse_launch` launches it. Pulse read tools return `launched`.
 - **Live Response Streaming**: A separate feed that posts each employee response into a Slack channel as participants finish (independent of the end-of-run report). Disabled by default. The Windmill Slack bot must be a member of the channel. Anonymous pulses cannot stream. The system silently disables it if both are configured.
+
+## Citing Pulses
+
+Write each pulse you name as a citation link: `[Pulse name](PULSE-<pulseId>)`, with the `pulseId` from the tool result. Do this in every reply that names the pulse, including a reply that confirms a create, test, launch, update, or send, and a reply that only asks a question about the pulse. The link replaces a quoted or bold pulse name.
+
+Pulse tools return people as keys. The `references.employees` block of the same result gives each key its `name` and `employeeId`. Write each person you name, also in a list of participants, as `[Name](EMPL-<employeeId>)`.
+
+The `PULSE-` and `EMPL-` prefixes are required: a link with a bare ID is wrong. A citation link needs a real ID from a tool result. A pulse or person that no tool returned gets a plain name with no link. Do not write a placeholder such as `PULSE-unknown` or `EMPL-?`, and do not look someone up only to cite them.
 
 ## Statuses
 
@@ -27,16 +35,18 @@ Use when users want to update, control, or check on existing pulses.
 | ACTIVE | Runs on schedule |
 | PAUSED | Scheduling stopped, in-progress runs continue |
 
-New pulses start ACTIVE.
+New pulses start ACTIVE as unlaunched drafts. Status does not launch a draft.
 
 ## Tools
 
 | Tool | Purpose | Key Constraints |
 |------|---------|-----------------|
 | pulse_query | Find and load pulses | Supports pulseIds filter to load specific pulses |
-| pulse_update | Change settings, status, or schedule | Non-manual schedule fields also launch an unlaunched pulse |
-| pulse_send_now | Send pulse immediately | Requires ACTIVE status |
-| pulse_send_nudge | User triggered notification | Requires `sessionId` and explicit `employeeIds`; 15-minute cooldown per employee globally |
+| pulse_update | Change settings, status, or schedule | A draft rejects participant and schedule fields |
+| pulse_test | Send a test run to the current user only | Works on a draft; never adds participants or launches |
+| pulse_launch | Launch a draft with participants and send timing | One time per pulse; needs the user's approval |
+| pulse_send_now | Send a launched pulse again immediately | Requires a launched, ACTIVE pulse |
+| pulse_send_nudge | User triggered notification | Requires `sessionId`; omit `employeeIds` to remind everyone who hasn't responded; 15-minute cooldown per employee globally |
 | pulse_runs_query | List runs | - |
 | pulse_employee_runs_query | Get responses; supports `attentionStatus` filter (`NEEDS_MY_RESPONSE`, `AWAITING_PARTICIPANT_RESPONSE`, `MISSED_RESPONSE`) | - |
 | pulse_employees_query | List participants | Shows enrolled employees |
@@ -44,9 +54,21 @@ New pulses start ACTIVE.
 | pulse_owner_update | Change owner access | - |
 | pulse_owner_remove | Remove owner | Cannot remove last WRITE owner |
 
+## Drafts, Testing, and Launch
+
+A draft (`launched: false`) has no recipients. For a draft:
+
+- Content and settings edits: `pulse_update`. Participant and schedule fields are rejected.
+- "Test it" / "let me try it": `pulse_test` only. The test goes to the user alone, also when they named a team or the whole company earlier. A test request never calls `pulse_launch`, `pulse_send_now`, or a participant update. After the test, end your turn and wait for the user's feedback. Never call `pulse_test` and `pulse_launch` in the same turn: "test it first, then send it" means launch only after the user has seen the test and says to send.
+- "Send it" / "schedule it": `pulse_launch` with `participants` and exactly one timing field: `sendNow: true`, `scheduleOneTime`, `scheduleRecurring`, or `scheduleStartDateAnniversary`.
+
+Before `pulse_launch`, confirm the audience with its current count and the send timing, and say that a sent pulse cannot be recalled. For a scheduled send or a dynamic filter, say that the participants are resolved again at each send, so the current count is not a fixed list. Call `pulse_launch` only after the user approves this confirmation. An earlier instruction to send or launch sets the intended audience and timing; it is not the approval. Offer a test first if the user has not tested and has not declined one.
+
+`pulse_send_now`, participant updates, and schedule updates apply to launched pulses only. The launch confirmation applies to `pulse_launch` only. On a launched pulse (`launched: true`), a clear request to send now, send to a subset, pause, or resume needs no extra confirmation: do it, also when a scheduled run is close. A pause has no end date and no automatic resume: pause now and tell the user to ask when they want it resumed. Before a settings, participant, or schedule change, confirm which pulse you found when the user did not name it exactly. A launched pulse with no runs yet is still launched.
+
 ## Schedule Types
 
-Use `pulse_update` to set schedule with ONE of these fields:
+For a launched pulse, use `pulse_update` to set schedule with ONE of these fields:
 
 | Field | When to Use | Example |
 |-----------|-------------|---------|
@@ -70,7 +92,7 @@ Use `pulse_update` to set schedule with ONE of these fields:
 }
 
 **User intent mapping:**
-- "send now" -> `pulse_send_now`
+- "send now" -> `pulse_send_now` (draft: `pulse_launch` with `sendNow: true`)
 - "send next Monday at 9am" -> `pulse_update` with `scheduleOneTime`
 - "every Monday" -> `pulse_update` with `scheduleRecurring`
 - "every other Wednesday" -> `pulse_update` with `scheduleRecurring` interval=2
@@ -82,7 +104,7 @@ Use `pulse_update` to set schedule with ONE of these fields:
 - "don't thread the streamed responses" / "post each response separately" -> `pulse_update` with `liveResponseStreamingThreaded: false`
 - "group streamed responses in a thread again" -> `pulse_update` with `liveResponseStreamingThreaded: true`
 
-When `scheduleOneTime`, `scheduleRecurring`, or `scheduleStartDateAnniversary` is set on an unlaunched pulse, update also launches it.
+For a draft, pass the same schedule field to `pulse_launch` instead of `pulse_update`.
 
 ## Updating Participants
 
@@ -166,7 +188,7 @@ Members with the send-all capability may use any supported participant filter. O
 | `notificationDelayMinutes` | Delay before first **reminder** to non-respondents (does NOT control when the pulse is sent) | 1440 (1 day) |
 | `pulse_deadline_update` | Change deadlines for existing runs or future defaults | Preview first |
 
-CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now`. Do NOT change `notificationDelayMinutes`; that controls reminder timing, not pulse delivery.
+CRITICAL: When a user says "send now" or "send immediately", use `pulse_send_now` (`pulse_launch` for a draft). Do NOT change `notificationDelayMinutes`; that controls reminder timing, not pulse delivery.
 
 ## Requester Options
 
@@ -218,12 +240,11 @@ Do not leak the actual enum values to the user. Use friendly names and labels in
 **CRITICAL**: To send nudges, call `pulse_send_nudge`:
 1. Find the pulse via `pulse_query`
 2. Find the target run/session via `pulse_runs_query` (usually the latest run)
-3. Determine the specific employees to nudge: call `pulse_employee_runs_query` with `pulseSessionIds: [sessionId]` and `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` to get the non-responders for that session
-4. Call `pulse_send_nudge` with `pulseId`, `sessionId`, and explicit `employeeIds`
+3. To remind everyone who hasn't responded, call `pulse_send_nudge` without `employeeIds`; it returns only the count. On an anonymous pulse this is the only option
+4. To nudge specific people, get them from `pulse_employee_runs_query` with `pulseSessionIds: [sessionId]` and `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"`, then pass their `employeeIds`
 5. Report the result to the user
 
 Important:
-- There is no "nudge all non-responders" shortcut parameter. You must send explicit `employeeIds`.
 - `AWAITING_PARTICIPANT_RESPONSE` is the right filter for "everyone who still hasn't responded". Scope it to the session to avoid pulling non-responders from other runs.
 
 ## Checking on Pulse Responses
@@ -233,7 +254,7 @@ Use `pulse_employee_runs_query` with the `attentionStatus` filter to answer comm
 | User Intent | Filter | Notes |
 |-------------|--------|-------|
 | "What pulses do I need to respond to?" / "What needs my attention?" | `attentionStatus: "NEEDS_MY_RESPONSE"` | Auto-scopes to the current employee. Only includes active pulses with an opened chat, no response yet, and an open/no deadline. Do not also pass an `employee` filter. |
-| "Who still hasn't responded?" / "Who's outstanding on this pulse?" | `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` | Combine with `pulseIds` or `pulseSessionIds` to scope to a specific pulse or run. Add an `employee` filter for manager/admin views over a subset. |
+| "Who still hasn't responded?" / "Who's outstanding on this pulse?" | `attentionStatus: "AWAITING_PARTICIPANT_RESPONSE"` | Combine with `pulseIds` or `pulseSessionIds` to scope to a specific pulse or run. Add an `employee` filter for manager/admin views over a subset. On an anonymous pulse, it matches only your own run. |
 | "Who missed the deadline?" / "Who never responded before it expired?" | `attentionStatus: "MISSED_RESPONSE"` | Expired sessions only. |
 
 Pair with `pulse_employee_runs_count` when the user only wants the number (e.g., "how many people still owe me a response?").
@@ -244,5 +265,6 @@ For pulse-level rollups (counts of completed runs, last run timestamp, etc.) use
 
 - Anonymity can change with `pulse_update` only before launch. It is locked after launch; if the user needs a different mode, explain that they must create a new pulse.
 - Schedule updates: pulse must not be COMPLETED or ARCHIVED
-- Send now: pulse must be ACTIVE
+- Send now: pulse must be launched and ACTIVE
+- Launch: one time per pulse, after the user approves the audience and send timing
 - Cannot remove last owner with WRITE access
